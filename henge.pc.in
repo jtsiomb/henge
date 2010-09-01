@@ -1,0 +1,5 @@
+Name: henge
+Description: Nuclear's Hull 3D Engine
+Version: ${ver}
+Cflags: -I${prefix}/include/henge -I${prefix}/include/henge/vmath
+Libs: -L${prefix}/lib -lhenge ${gl_libs} -lpng -ljpeg -l3ds -lm
