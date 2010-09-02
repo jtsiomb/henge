@@ -69,6 +69,7 @@ install: $(lib_a) $(lib_so)
 	test -d $(PREFIX)/lib/pkgconfig || mkdir -p $(PREFIX)/lib/pkgconfig
 	cp $(lib_a) $(PREFIX)/lib/$(lib_a)
 	cp $(lib_so) $(PREFIX)/lib/$(lib_so)
+	rm -f $(PREFIX)/lib/$(linkname)
 	cd $(PREFIX)/lib && ( test -z "$(linkname)" || ln -s $(lib_so) $(linkname) )
 	cd src && cp *.h *.inl $(PREFIX)/include/henge2/
 	cp henge2.pc $(PREFIX)/lib/pkgconfig/henge2.pc
