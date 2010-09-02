@@ -64,7 +64,7 @@ echo >>henge2.pc
 echo "prefix=$prefix" >>henge2.pc
 echo "ver=$version" >>henge2.pc
 echo "depcflags=`pkg-config --cflags vmath`" >>henge2.pc
-echo "deplibs=`pkg-config --libs vmath` -limago2 -l3ds" >>henge2.pc
+echo "deplibs=`pkg-config --libs vmath` -limago -l3ds -lGLEW" >>henge2.pc
 echo >>henge2.pc
 cat henge2.pc.in >>henge2.pc
 
