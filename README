@@ -1,0 +1,25 @@
+henge - 2.0.0
+-------------
+
+Henge 3D engine
+Author: John Tsiombikas <nuclear@member.fsf.org>
+License: GNU LGPL v3 (or any later version), see COPYING and COPYING.LESSER.
+
+Installation
+------------
+To compile and install (default prefix is /usr/local) just go into the henge
+directory and type:
+
+$ ./configure
+$ make
+# make install
+
+Usage
+-----
+To use henge in your projects make sure you pass the output of
+"pkg-config --cflags henge2" to the compiler, and the output of
+"pkg-config --libs henge2" to the linker.
+
+There's no documentation at the moment, try to figure out how to use henge by
+looking through the header files, and the example programs in the tests
+subdirectory.

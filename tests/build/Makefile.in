@@ -1,0 +1,20 @@
+src = $(wildcard *.cc)
+obj = $(src:.cc=.o)
+bin = $(app_name)
+
+ifeq ($(shell uname -s), Darwin)
+	gl_libs = -framework OpenGL -framework GLUT
+else
+	gl_libs = -lGL -lGLU -lglut
+endif
+
+CXX = g++
+CXXFLAGS = -ansi -pedantic -Wall $(dbg) $(opt) `pkg-config --cflags henge`
+LDFLAGS = `pkg-config --libs henge` $(gl_libs)
+
+$(bin): $(obj)
+	$(CXX) -o $@ $(obj) $(LDFLAGS)
+
+.PHONY: clean
+clean:
+	rm -f $(obj) $(bin)
