@@ -19,9 +19,9 @@ void keyb_up(unsigned char key, int x, int y);
 void mouse(int bn, int state, int x, int y);
 void motion(int x, int y);
 
-material mat;
-texture *cube_tex;
-scene *scn;
+Material mat;
+Texture *cube_tex;
+Scene *scn;
 
 float cam_theta = 0, cam_phi = 0, cam_dist = 50;
 float cam_y = 0;
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	scn = new scene;
+	scn = new Scene;
 
 	int num_loaded = 0;
 	for(int i=1; i<argc; i++) {
