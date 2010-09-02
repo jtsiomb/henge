@@ -3,27 +3,27 @@
 
 namespace henge {
 
-enum pixmap_format {
+enum PixmapFormat {
 	PIX_RGBA32,
 	PIX_FLOAT
 };
 
-class pixmap {
+class Pixmap {
 public:
 	void *pixels;
 	int xsz, ysz;
 
-	pixmap_format fmt;
+	PixmapFormat fmt;
 	int bytes_per_pixel;	// derived from fmt
 
 	bool manage_pixels;
 
 
-	pixmap();
-	pixmap(int xsz, int ysz, pixmap_format fmt = PIX_RGBA32, void *pixels = 0);
-	~pixmap();
+	Pixmap();
+	Pixmap(int xsz, int ysz, PixmapFormat fmt = PIX_RGBA32, void *pixels = 0);
+	~Pixmap();
 
-	bool set_pixels(int xsz, int ysz, pixmap_format fmt = PIX_RGBA32, void *pixels = 0);
+	bool set_pixels(int xsz, int ysz, PixmapFormat fmt = PIX_RGBA32, void *pixels = 0);
 
 	bool load(const char *name);
 	bool save(const char *name);
@@ -33,16 +33,16 @@ public:
 	bool is_transparent() const;
 };
 
-void convert_pixmap(pixmap *pix, pixmap_format tofmt);
+void convert_pixmap(Pixmap *pix, PixmapFormat tofmt);
 
-void copy_pixels(pixmap *dest, pixmap *src);
-void copy_pixels(pixmap *dest, int destx, int desty, pixmap *src, int sx, int sy, int width, int height);
+void copy_pixels(Pixmap *dest, Pixmap *src);
+void copy_pixels(Pixmap *dest, int destx, int desty, Pixmap *src, int sx, int sy, int width, int height);
 
 // counter-clockwise rotation
-void rotate_pixmap(pixmap *pix, int deg);
+void rotate_pixmap(Pixmap *pix, int deg);
 
-void mirror_pixmap(pixmap *pix);
-void flip_pixmap(pixmap *pix);
+void mirror_pixmap(Pixmap *pix);
+void flip_pixmap(Pixmap *pix);
 
 }	// namespace henge
 

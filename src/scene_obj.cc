@@ -51,20 +51,20 @@ static const char *cmd_names[] = {
 #undef CMD
 
 
-struct obj_face {
+struct ObjFace {
 	int elem;
 	int v[4], n[4], t[4];
 };
 
-struct obj_file {
+struct ObjFile {
 	string cur_obj, cur_mat;
 	vector<Vector3> v, vn, vt;
-	vector<obj_face> f;
+	vector<ObjFace> f;
 };
 
-struct obj_mat {
+struct ObjMat {
 	string name;		// newmtl <name>
-	color ambient, diffuse, specular;	// Ka, Kd, Ks
+	Color ambient, diffuse, specular;	// Ka, Kd, Ks
 	float shininess;	// Ns
 	float ior;			// Ni
 	float alpha;		// d, Tr
@@ -73,43 +73,43 @@ struct obj_mat {
 	string tex_refl;	// refl -type sphere|cube file
 	string tex_bump;	// bump
 
-	obj_mat() { reset(); }
+	ObjMat() { reset(); }
 
 	void reset() {
-		ambient = diffuse = color(0.5, 0.5, 0.5, 1.0);
-		specular = color(0.0, 0.0, 0.0, 1.0);
+		ambient = diffuse = Color(0.5, 0.5, 0.5, 1.0);
+		specular = Color(0.0, 0.0, 0.0, 1.0);
 		name = tex_dif = tex_spec = tex_shin = tex_alpha = tex_refl = tex_bump = "";
 		shininess = 0;
 		ior = alpha = 1;
 	}
 };
 
-static bool read_materials(FILE *fp, vector<obj_mat> *vmtl);
-static robject *cons_object(obj_file *obj);
+static bool read_materials(FILE *fp, vector<ObjMat> *vmtl);
+static RObject *cons_object(ObjFile *obj);
 
 static int get_cmd(char *str);
 static bool is_int(const char *str);
 static bool is_float(const char *str);
 static bool parse_vec(Vector3 *vec);
-static bool parse_color(color *col);
-static bool parse_face(obj_face *face);
+static bool parse_color(Color *col);
+static bool parse_face(ObjFace *face);
 static const char *parse_map();
 
 
-static map<string, material> matlib;
+static map<string, Material> matlib;
 
 
 #define INVALID_IDX		INT_MIN
 
 #define SEP		" \t\n\r\v"
 #define BUF_SZ	512
-bool scene::load_obj(FILE *fp)
+bool Scene::load_obj(FILE *fp)
 {
 	static int seq;
 	char cur_name[16];
 	stringstream sstr;
 
-	obj_file obj;
+	ObjFile obj;
 
 	sprintf(cur_name, "default%02d.obj", seq++);
 	obj.cur_obj = cur_name;
@@ -117,7 +117,7 @@ bool scene::load_obj(FILE *fp)
 	int prev_cmd = 0, obj_added = 0;
 	for(;;) {
 		Vector3 vec;
-		obj_face face;
+		ObjFace face;
 
 		char line[BUF_SZ];
 		fgets(line, sizeof line, fp);
@@ -167,7 +167,7 @@ bool scene::load_obj(FILE *fp)
 			 * and continue with the new one...
 			 */
 			if(!obj.f.empty()) {
-				robject *robj = cons_object(&obj);
+				RObject *robj = cons_object(&obj);
 				robj->set_material(matlib[obj.cur_mat]);
 				add_object(robj);
 				obj_added++;
@@ -197,7 +197,7 @@ bool scene::load_obj(FILE *fp)
 				}
 
 				// load all materials of the mtl file into a vector
-				vector<obj_mat> vmtl;
+				vector<ObjMat> vmtl;
 				if(!read_materials(mfile, &vmtl)) {
 					continue;
 				}
@@ -205,7 +205,7 @@ bool scene::load_obj(FILE *fp)
 
 				// and add them all to the scene
 				for(size_t i=0; i<vmtl.size(); i++) {
-					material mat;
+					Material mat;
 					mat.set_name(vmtl[i].name.c_str());
 
 					mat.set_color(vmtl[i].ambient, MATTR_AMBIENT);
@@ -273,7 +273,7 @@ bool scene::load_obj(FILE *fp)
 
 	// reached end of file...
 	if(!obj.f.empty()) {
-		robject *robj = cons_object(&obj);
+		RObject *robj = cons_object(&obj);
 		robj->set_material(matlib[obj.cur_mat]);
 		add_object(robj);
 		obj_added++;
@@ -282,16 +282,16 @@ bool scene::load_obj(FILE *fp)
 	return obj_added > 0;
 }
 
-static robject *cons_object(obj_file *obj)
+static RObject *cons_object(ObjFile *obj)
 {
-	robject *robj;
+	RObject *robj;
 	Vector3 *varr, *narr;
 	Vector2 *tarr;
 
 	int nelem = obj->f.size() * 3;
 
 	try {
-		robj = new robject;
+		robj = new RObject;
 		varr = new Vector3[nelem];
 		narr = new Vector3[nelem];
 		tarr = new Vector2[nelem];
@@ -317,7 +317,7 @@ static robject *cons_object(obj_file *obj)
 	for(size_t i=0; i<obj->f.size(); i++) {
 		for(int j=0; j<3; j++) {
 			int idx = i * 3 + j;
-			obj_face *f = &obj->f[i];
+			ObjFace *f = &obj->f[i];
 
 			varr[idx] = obj->v[f->v[j]];
 			narr[idx] = obj->vn[f->n[j] < 0 ? 0 : f->n[j]];
@@ -335,7 +335,7 @@ static robject *cons_object(obj_file *obj)
 		obj->vt.pop_back();
 	}
 
-	trimesh *mesh = robj->get_mesh();
+	TriMesh *mesh = robj->get_mesh();
 	mesh->set_data(EL_VERTEX, varr, nelem);
 	mesh->set_data(EL_NORMAL, narr, nelem);
 	mesh->set_data(EL_TEXCOORD, tarr, nelem);
@@ -346,9 +346,9 @@ static robject *cons_object(obj_file *obj)
 	return robj;
 }
 
-static bool read_materials(FILE *fp, vector<obj_mat> *vmtl)
+static bool read_materials(FILE *fp, vector<ObjMat> *vmtl)
 {
-	obj_mat mat;
+	ObjMat mat;
 
 	for(;;) {
 		char line[BUF_SZ];
@@ -406,7 +406,7 @@ static bool read_materials(FILE *fp, vector<obj_mat> *vmtl)
 		case CMD_D:
 		case CMD_TR:
 			{
-				color c;
+				Color c;
 				if(parse_color(&c)) {
 					mat.alpha = cmd == CMD_D ? c.x : 1.0 - c.x;
 				}
@@ -472,7 +472,7 @@ static bool parse_vec(Vector3 *vec)
 	return true;
 }
 
-static bool parse_color(color *col)
+static bool parse_color(Color *col)
 {
 	for(int i=0; i<3; i++) {
 		char *tok;
@@ -486,7 +486,7 @@ static bool parse_color(color *col)
 	return true;
 }
 
-static bool parse_face(obj_face *face)
+static bool parse_face(ObjFace *face)
 {
 	char *tok[] = {0, 0, 0, 0};
 	face->elem = 0;

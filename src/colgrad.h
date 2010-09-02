@@ -7,40 +7,41 @@
 
 namespace henge {
 
-struct grad_sample {
-	int key; color c;
+struct GradSample {
+	int key;
+	Color c;
 
-	bool operator <(const grad_sample &rhs) const;
+	bool operator <(const GradSample &rhs) const;
 };
 
-class color_gradient {
+class ColorGradient {
 private:
 	// mutable due to lazy sorting in get_color.
-	mutable std::vector<grad_sample> samples;
+	mutable std::vector<GradSample> samples;
 	mutable bool samples_sorted;
 
 	// mutable due to caching in ramp_map/rad_map.
-	mutable std::vector<texture*> maps;
-	mutable std::vector<texture*> ramp_cache, rad_cache;
+	mutable std::vector<Texture*> maps;
+	mutable std::vector<Texture*> ramp_cache, rad_cache;
 
 	void clear_maps();
 
 public:
-	color_gradient();
-	color_gradient(const color_gradient &grad);
-	~color_gradient();
+	ColorGradient();
+	ColorGradient(const ColorGradient &grad);
+	~ColorGradient();
 
-	color_gradient &operator =(const color_gradient &rhs);
+	ColorGradient &operator =(const ColorGradient &rhs);
 
 	void clear();
-	bool set_color(float t, const color &c);
-	const color get_color(float t) const;
+	bool set_color(float t, const Color &c);
+	const Color get_color(float t) const;
 
 	bool load(const char *fname);
 	bool save(const char *fname) const;
 
-	texture *ramp_map(int xsz = 128, int ysz = 1) const;
-	texture *radial_map(int xsz, int ysz) const;
+	Texture *ramp_map(int xsz = 128, int ysz = 1) const;
+	Texture *radial_map(int xsz, int ysz) const;
 };
 
 }

@@ -5,11 +5,11 @@
 
 using namespace henge;
 
-light::light(const Vector3 &pos, const color &col)
+Light::Light(const Vector3 &pos, const Color &col)
 {
 	set_position(pos);
 
-	ambient = color(0, 0, 0, 1);
+	ambient = Color(0, 0, 0, 1);
 	diffuse = col;
 	specular = col;
 	att[0] = 1.0f;
@@ -18,74 +18,74 @@ light::light(const Vector3 &pos, const color &col)
 	enabled = true;
 }
 
-light::~light() {}
+Light::~Light() {}
 
-light *light::clone() const
+Light *Light::clone() const
 {
-	printf("light::clone\n");
-	return new light(*this);
+	printf("Light::clone\n");
+	return new Light(*this);
 }
 
-void light::set_ambient(const color &col)
+void Light::set_ambient(const Color &col)
 {
 	ambient = col;
 }
 
-color light::get_ambient() const
+Color Light::get_ambient() const
 {
 	return ambient;
 }
 
-void light::set_diffuse(const color &col)
+void Light::set_diffuse(const Color &col)
 {
 	diffuse = col;
 }
 
-color light::get_diffuse() const
+Color Light::get_diffuse() const
 {
 	return diffuse;
 }
 
-void light::set_specular(const color &col)
+void Light::set_specular(const Color &col)
 {
 	specular = col;
 }
 
-color light::get_specular() const
+Color Light::get_specular() const
 {
 	return specular;
 }
 
-void light::set_attenuation(float con, float lin, float quad)
+void Light::set_attenuation(float con, float lin, float quad)
 {
 	att[0] = con;
 	att[1] = lin;
 	att[2] = quad;
 }
 
-void light::get_attenuation(float *con, float *lin, float *quad) const
+void Light::get_attenuation(float *con, float *lin, float *quad) const
 {
 	if(con) *con = att[0];
 	if(lin) *lin = att[1];
 	if(quad) *quad = att[2];
 }
 
-void light::enable()
+void Light::enable()
 {
 	enabled = true;
 }
 
-void light::disable()
+void Light::disable()
 {
 	enabled = false;
 }
 
-bool light::is_enabled() const
+bool Light::is_enabled() const
 {
 	return enabled;
 }
 
-bool light::bind(int idx, unsigned int msec) const
+bool Light::bind(int idx, unsigned int msec) const
 {
 	if(!enabled) return false;
 
@@ -109,55 +109,55 @@ bool light::bind(int idx, unsigned int msec) const
 	return true;
 }
 
-dirlight_base::~dirlight_base() {}
+DirLightBase::~DirLightBase() {}
 
-dirlight_base *dirlight_base::clone() const
+DirLightBase *DirLightBase::clone() const
 {
-	printf("dirlight_base::clone\n");
-	return new dirlight_base(*this);
+	printf("DirLightBase::clone\n");
+	return new DirLightBase(*this);
 }
 
-void dirlight_base::set_direction(const Vector3 &dir)
+void DirLightBase::set_direction(const Vector3 &dir)
 {
 	this->dir = dir;
 }
 
-const Vector3 &dirlight_base::get_direction() const
+const Vector3 &DirLightBase::get_direction() const
 {
 	return dir;
 }
 
 
-spotlight::spotlight()
+SpotLight::SpotLight()
 {
 	dir = Vector3(0, 0, -1);
 	inner = outer = 45;
 	exponent = 0;
 }
 
-spotlight::~spotlight() {}
+SpotLight::~SpotLight() {}
 
-spotlight *spotlight::clone() const
+SpotLight *SpotLight::clone() const
 {
-	printf("spotlight::clone\n");
-	return new spotlight(*this);
+	printf("SpotLight::clone\n");
+	return new SpotLight(*this);
 }
 
-void spotlight::set_cone(float inner, float outer)
+void SpotLight::set_cone(float inner, float outer)
 {
 	this->inner = inner;
 	this->outer = outer;
 }
 
-void spotlight::get_cone(float *inner, float *outer) const
+void SpotLight::get_cone(float *inner, float *outer) const
 {
 	if(inner) *inner = this->inner;
 	if(outer) *outer = this->outer;
 }
 
-bool spotlight::bind(int idx, unsigned int msec) const
+bool SpotLight::bind(int idx, unsigned int msec) const
 {
-	if(!light::bind(idx, msec)) {
+	if(!Light::bind(idx, msec)) {
 		return false;
 	}
 
@@ -165,10 +165,10 @@ bool spotlight::bind(int idx, unsigned int msec) const
 	Quaternion p(0.0f, dir);
 	p = q.inverse() * p * q;
 
-	Vector3 sdir = p.v;
+	float sdir[] = {p.v.x, p.v.y, p.v.z, 1.0};
 
 	unsigned int lt = GL_LIGHT0 + idx;
-	glLightfv(lt, GL_SPOT_DIRECTION, &sdir.x);
+	glLightfv(lt, GL_SPOT_DIRECTION, sdir);
 	glLightf(lt, GL_SPOT_EXPONENT, exponent);
 	glLightf(lt, GL_SPOT_CUTOFF, outer);
 
@@ -178,31 +178,31 @@ bool spotlight::bind(int idx, unsigned int msec) const
 	cache_uniform(var_name, (float)DEG_TO_RAD(inner));
 	sprintf(var_name, "uc_spot_inner%d", idx);
 	cache_uniform(var_name, (float)DEG_TO_RAD(inner));
-	
+
 	sprintf(var_name, "uc_spot_outer[%d]", idx);
 	cache_uniform(var_name, (float)DEG_TO_RAD(outer));
 	sprintf(var_name, "uc_spot_outer%d", idx);
 	cache_uniform(var_name, (float)DEG_TO_RAD(outer));
-	
+
 	return true;
 }
 
-dirlight::dirlight(const Vector3 &dir)
+DirLight::DirLight(const Vector3 &dir)
 {
 	this->dir = dir;
 }
 
-dirlight::~dirlight() {}
+DirLight::~DirLight() {}
 
-dirlight *dirlight::clone() const
+DirLight *DirLight::clone() const
 {
-	printf("dirlight::clone\n");
-	return new dirlight(*this);
+	printf("DirLight::clone\n");
+	return new DirLight(*this);
 }
 
-bool dirlight::bind(int idx, unsigned int msec) const
+bool DirLight::bind(int idx, unsigned int msec) const
 {
-	if(!light::bind(idx, msec)) {
+	if(!Light::bind(idx, msec)) {
 		return false;
 	}
 

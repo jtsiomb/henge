@@ -7,10 +7,10 @@
 
 namespace henge {
 
-void overlay(const texture *tex, const color &col, const shader *sdr = 0);
+void overlay(const Texture *tex, const Color &col, const Shader *sdr = 0);
 
-void overlay(const Vector2 &pos, const Vector2 &sz, const color &col, const texture *tex,
-		const shader *sdr = 0, unsigned int src_blend = GL_SRC_ALPHA,
+void overlay(const Vector2 &pos, const Vector2 &sz, const Color &col, const Texture *tex,
+		const Shader *sdr = 0, unsigned int src_blend = GL_SRC_ALPHA,
 		unsigned int dst_blend = GL_ONE_MINUS_SRC_ALPHA);
 
 }	// namespace henge

@@ -3,13 +3,12 @@
 #include "sdr.h"
 #include "unicache.h"
 #include "errlog.h"
-#include "port.h"
 #include "datapath.h"
 
 using namespace std;
 using namespace henge;
 
-static map<string, shader*> sdrman;
+static map<string, Shader*> sdrman;
 
 static bool bind_program(unsigned int prog);
 
@@ -20,18 +19,18 @@ bool henge::init_sdr()
 
 void henge::destroy_sdr()
 {
-	map<string, shader*>::iterator iter = sdrman.begin();
+	map<string, Shader*>::iterator iter = sdrman.begin();
 	while(iter != sdrman.end()) {
 		delete iter++->second;
 	}
 	sdrman.clear();
 }
 
-bool henge::add_shader(const char *vname, const char *pname, shader *sdr)
+bool henge::add_shader(const char *vname, const char *pname, Shader *sdr)
 {
 	if(!vname) vname = "";
 	if(!pname) pname = "";
-	
+
 	char *key = (char*)alloca(strlen(vname) + strlen(pname) + 1);
 	sprintf(key, "%s%s", vname, pname);
 
@@ -44,10 +43,10 @@ bool henge::add_shader(const char *vname, const char *pname, shader *sdr)
 	return true;
 }
 
-shader *henge::get_shader(const char *vname, const char *pname)
+Shader *henge::get_shader(const char *vname, const char *pname)
 {
 	if(!vname && !pname) return 0;
-	
+
 	if(!vname) vname = "";
 	if(!pname) pname = "";
 
@@ -58,14 +57,14 @@ shader *henge::get_shader(const char *vname, const char *pname)
 		return 0;
 	}
 
-	map<string, shader*>::iterator iter = sdrman.find(key);
+	map<string, Shader*>::iterator iter = sdrman.find(key);
 	if(iter != sdrman.end()) {
 		return iter->second;
 	}
 
-	shader *sdr;
+	Shader *sdr;
 	try {
-		sdr = new shader;
+		sdr = new Shader;
 	}
 	catch(...) {
 		return 0;
@@ -87,7 +86,7 @@ shader *henge::get_shader(const char *vname, const char *pname)
 	return sdr;
 }
 
-void henge::set_shader(const shader *sdr)
+void henge::set_shader(const Shader *sdr)
 {
 	if(!caps.glsl) return;
 
@@ -98,13 +97,13 @@ void henge::set_shader(const shader *sdr)
 	}
 }
 
-shader::shader()
+Shader::Shader()
 {
 	prog = vsdr = psdr = 0;
 	prog_valid = false;
 }
 
-shader::~shader()
+Shader::~Shader()
 {
 	if(caps.glsl) {
 		if(vsdr) glDeleteObjectARB(vsdr);
@@ -113,7 +112,7 @@ shader::~shader()
 	}
 }
 
-void shader::find_uniforms()
+void Shader::find_uniforms()
 {
 	uniforms.clear();
 
@@ -137,7 +136,7 @@ void shader::find_uniforms()
 	}
 }
 
-bool shader::load_shader(const char *fname, sdrtype type)
+bool Shader::load_shader(const char *fname, SdrType type)
 {
 	char path[PATH_MAX];
 	if(!find_file(fname, path)) {
@@ -163,7 +162,7 @@ bool shader::load_shader(const char *fname, sdrtype type)
 	return compile_shader(src, type, fname);
 }
 
-bool shader::compile_shader(const char *src, sdrtype type, const char *fname)
+bool Shader::compile_shader(const char *src, SdrType type, const char *fname)
 {
 	if(!caps.glsl) {
 		error("compile_shader failed, no GLSL support\n");
@@ -207,7 +206,7 @@ bool shader::compile_shader(const char *src, sdrtype type, const char *fname)
 	return true;
 }
 
-bool shader::link()
+bool Shader::link()
 {
 	if(!caps.glsl) {
 		error("link failed, no GLSL support\n");
@@ -270,7 +269,7 @@ bool shader::link()
 		return false; \
 	} \
 	if(!prog || !prog_valid) { \
-		if(!((shader*)this)->link()) { \
+		if(!((Shader*)this)->link()) { \
 			return false; \
 		} \
 	} \
@@ -287,7 +286,7 @@ bool shader::link()
 	return loc != -1
 
 
-bool shader::set_uniform(const char *name, int val) const
+bool Shader::set_uniform(const char *name, int val) const
 {
 	BEGIN_UNIFORM_CODE {
 		glUniform1iARB(loc, val);
@@ -295,7 +294,7 @@ bool shader::set_uniform(const char *name, int val) const
 	END_UNIFORM_CODE;
 }
 
-bool shader::set_uniform(const char *name, float val) const
+bool Shader::set_uniform(const char *name, float val) const
 {
 	BEGIN_UNIFORM_CODE {
 		glUniform1fARB(loc, val);
@@ -303,7 +302,7 @@ bool shader::set_uniform(const char *name, float val) const
 	END_UNIFORM_CODE;
 }
 
-bool shader::set_uniform(const char *name, double val) const
+bool Shader::set_uniform(const char *name, double val) const
 {
 	BEGIN_UNIFORM_CODE {
 		glUniform1fARB(loc, val);
@@ -311,7 +310,7 @@ bool shader::set_uniform(const char *name, double val) const
 	END_UNIFORM_CODE;
 }
 
-bool shader::set_uniform(const char *name, const Vector3 &vec) const
+bool Shader::set_uniform(const char *name, const Vector3 &vec) const
 {
 	BEGIN_UNIFORM_CODE {
 		glUniform3fARB(loc, vec.x, vec.y, vec.z);
@@ -319,7 +318,7 @@ bool shader::set_uniform(const char *name, const Vector3 &vec) const
 	END_UNIFORM_CODE;
 }
 
-bool shader::set_uniform(const char *name, const Vector4 &vec) const
+bool Shader::set_uniform(const char *name, const Vector4 &vec) const
 {
 	BEGIN_UNIFORM_CODE {
 		glUniform4fARB(loc, vec.x, vec.y, vec.z, vec.w);
@@ -328,7 +327,7 @@ bool shader::set_uniform(const char *name, const Vector4 &vec) const
 }
 
 // XXX: do I need to transpose this ? probably...
-bool shader::set_uniform(const char *name, const Matrix4x4 &mat) const
+bool Shader::set_uniform(const char *name, const Matrix4x4 &mat) const
 {
 	BEGIN_UNIFORM_CODE {
 		glUniformMatrix4fvARB(loc, 1, 1, (float*)&mat);
@@ -337,14 +336,14 @@ bool shader::set_uniform(const char *name, const Matrix4x4 &mat) const
 }
 
 
-bool shader::bind() const
+bool Shader::bind() const
 {
 	if(!caps.glsl) {
 		return false;
 	}
 
 	if(!prog || !prog_valid) {
-		if(!((shader*)this)->link()) {
+		if(!((Shader*)this)->link()) {
 			return false;
 		}
 	}

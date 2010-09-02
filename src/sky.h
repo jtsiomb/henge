@@ -8,22 +8,22 @@
 
 namespace henge {
 
-class sky_layer;
+class SkyLayer;
 
-class skydome {
+class SkyDome {
 private:
-	std::vector<sky_layer*> layers;
-	texture *sun_tex, *moon_tex;
+	std::vector<SkyLayer*> layers;
+	Texture *sun_tex, *moon_tex;
 	SphVector sun_pos, moon_pos;
 	float sun_size, moon_size;
 
 public:
-	skydome();
-	~skydome();
-	bool add_layer(sky_layer *layer);
+	SkyDome();
+	~SkyDome();
+	bool add_layer(SkyLayer *layer);
 
-	void set_sun_tex(texture *tex);
-	void set_moon_tex(texture *tex);
+	void set_sun_tex(Texture *tex);
+	void set_moon_tex(Texture *tex);
 
 	void set_sun_pos(const SphVector &svec);
 	void set_moon_pos(const SphVector &svec);
@@ -38,17 +38,17 @@ public:
 };
 
 
-class sky_layer {
+class SkyLayer {
 protected:
 	float radius;
-	robject *dome;
-	material *mat;
-	color col;
+	RObject *dome;
+	Material *mat;
+	Color col;
 	bool enabled;
 
 public:
-	sky_layer(float rad = 750.0f);
-	virtual ~sky_layer();
+	SkyLayer(float rad = 750.0f);
+	virtual ~SkyLayer();
 
 	void enable();
 	void disable();
@@ -57,36 +57,36 @@ public:
 	void set_radius(float rad);
 	float get_radius() const;
 
-	void set_color(const color &col);
-	const color &get_color() const;
+	void set_color(const Color &col);
+	const Color &get_color() const;
 
 	virtual void draw(unsigned int msec) const;
 };
 
-class sky_layer_grad : public sky_layer {
+class SkyLayerGrad : public SkyLayer {
 private:
 	bool def_grad;
-	color_gradient grad;
+	ColorGradient grad;
 
 public:
-	sky_layer_grad(float rad = 750.0f);
-	sky_layer_grad(const color_gradient &grad);
-	virtual ~sky_layer_grad();
+	SkyLayerGrad(float rad = 750.0f);
+	SkyLayerGrad(const ColorGradient &grad);
+	virtual ~SkyLayerGrad();
 
 	bool load_grad(const char *fname);
 	bool save_grad(const char *fname);
-	void set_grad_color(float t, const color &col);
+	void set_grad_color(float t, const Color &col);
 
 	virtual void draw(unsigned int msec = 0) const;
 };
 
-class sky_layer_clouds : public sky_layer {
+class SkyLayerClouds : public SkyLayer {
 protected:
 	Vector3 scale, velocity;
 
 public:
-	sky_layer_clouds(float rad = 750.0f);
-	virtual ~sky_layer_clouds();
+	SkyLayerClouds(float rad = 750.0f);
+	virtual ~SkyLayerClouds();
 
 	void set_scale(float scale);
 	void set_scale(const Vector3 &scale);
@@ -95,25 +95,25 @@ public:
 	virtual void draw(unsigned int msec) const = 0;
 };
 
-class sky_layer_clouds_tex : public sky_layer_clouds {
+class SkyLayerCloudsTex : public SkyLayerClouds {
 public:
-	sky_layer_clouds_tex(float rad = 750.0f, texture *tex = 0);
-	virtual ~sky_layer_clouds_tex();
+	SkyLayerCloudsTex(float rad = 750.0f, Texture *tex = 0);
+	virtual ~SkyLayerCloudsTex();
 
-	void set_texture(texture *tex);
+	void set_texture(Texture *tex);
 
 	virtual void draw(unsigned int msec = 0) const;
 };
 
-class sky_layer_clouds_sdr : public sky_layer_clouds {
+class SkyLayerCloudsSdr : public SkyLayerClouds {
 private:
 	float anim_speed, coverage, sharpness;
 
 public:
-	sky_layer_clouds_sdr(float rad = 750.0f, shader *sdr = 0);
-	virtual ~sky_layer_clouds_sdr();
+	SkyLayerCloudsSdr(float rad = 750.0f, Shader *sdr = 0);
+	virtual ~SkyLayerCloudsSdr();
 
-	void set_shader(shader *sdr);
+	void set_shader(Shader *sdr);
 	void set_anim_speed(float s);
 	void set_coverage(float cov);
 	void set_sharpness(float shrp);

@@ -5,7 +5,7 @@
 
 namespace henge {
 
-class object {
+class Object {
 protected:
 	Vector3 pos;
 	Matrix4x4 xform;
@@ -14,8 +14,8 @@ protected:
 	mutable bool cache_valid;
 
 public:
-	object();
-	virtual ~object();
+	Object();
+	virtual ~Object();
 
 	virtual void set_xform(const Matrix4x4 &mat);
 	virtual const Matrix4x4 &get_xform() const;
@@ -26,13 +26,13 @@ public:
 	virtual bool raytest(const Ray &ray, Vector3 *pt) const = 0;
 };
 
-class sphere : public object {
+class Sphere : public Object {
 protected:
 	float radius;
 
 public:
-	sphere(const Vector3 &pos = Vector3(0, 0, 0), float rad = 1.0f);
-	virtual ~sphere();
+	Sphere(const Vector3 &pos = Vector3(0, 0, 0), float rad = 1.0f);
+	virtual ~Sphere();
 
 	void set_radius(float r);
 	float get_radius() const;
@@ -40,14 +40,14 @@ public:
 	virtual bool raytest(const Ray &ray, Vector3 *pt) const;
 };
 
-class plane : public object {
+class Plane : public Object {
 protected:
 	Vector3 norm;
 
 public:
-	plane(const Vector3 &pos = Vector3(0, 0, 0), const Vector3 &norm = Vector3(0, 1, 0));
-	plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3);
-	virtual ~plane();
+	Plane(const Vector3 &pos = Vector3(0, 0, 0), const Vector3 &norm = Vector3(0, 1, 0));
+	Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3);
+	virtual ~Plane();
 
 	void set_normal(const Vector3 &norm);
 	Vector3 get_normal() const;

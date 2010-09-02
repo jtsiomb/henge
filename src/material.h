@@ -9,7 +9,7 @@
 
 namespace henge {
 
-enum mat_attr {
+enum MatAttr {
 	MATTR_AMB_AND_DIF,
 	MATTR_AMBIENT,		// ambient color \ generally tied together
 	MATTR_DIFFUSE,		// diffuse color /
@@ -39,37 +39,37 @@ float get_global_alpha();
 
 #define MAT_MAX_TEX		4
 
-class material {
+class Material {
 private:
 	std::string name;
-	color attr[MATTR_COUNT];
-	shader *sdr;
-	texture *tex[MAT_MAX_TEX];
+	Color attr[MATTR_COUNT];
+	Shader *sdr;
+	Texture *tex[MAT_MAX_TEX];
 
-	xform_node tex_xform;
+	XFormNode tex_xform;
 
 public:
-	material(const color &col = color(0.5f, 0.5f, 0.5f, 1.0f));
+	Material(const Color &col = Color(0.5f, 0.5f, 0.5f, 1.0f));
 
 	void set_name(const char *name);
 	const char *get_name() const;
 
-	void set_color(const color &c, mat_attr ma = MATTR_AMB_AND_DIF);
-	const color &get_color(mat_attr ma = MATTR_AMB_AND_DIF) const;
+	void set_color(const Color &c, MatAttr ma = MATTR_AMB_AND_DIF);
+	const Color &get_color(MatAttr ma = MATTR_AMB_AND_DIF) const;
 
-	void set(float val, mat_attr ma);
-	float get(mat_attr ma) const;
+	void set(float val, MatAttr ma);
+	float get(MatAttr ma) const;
 
-	void set_shader(shader *sdr);
-	shader *get_shader();
-	const shader *get_shader() const;
+	void set_shader(Shader *sdr);
+	Shader *get_shader();
+	const Shader *get_shader() const;
 
-	void set_texture(texture *tex, int idx = 0);
-	texture *get_texture(int idx = 0);
-	const texture *get_texture(int idx = 0) const;
+	void set_texture(Texture *tex, int idx = 0);
+	Texture *get_texture(int idx = 0);
+	const Texture *get_texture(int idx = 0) const;
 
-	const xform_node *texture_xform() const;
-	xform_node *texture_xform();
+	const XFormNode *texture_xform() const;
+	XFormNode *texture_xform();
 
 	bool is_transparent() const;
 

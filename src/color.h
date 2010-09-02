@@ -8,7 +8,7 @@
 namespace henge {
 
 // our colors are just 4dimensional vectors
-typedef Vector4 color;
+typedef Vector4 Color;
 
 inline uint32_t pack_color(int r, int g, int b, int a = 255)
 {
@@ -16,7 +16,7 @@ inline uint32_t pack_color(int r, int g, int b, int a = 255)
 		((b & 0xff) << BLUE_SHIFT) | ((a & 0xff) << ALPHA_SHIFT);
 }
 
-inline uint32_t pack_color(const color &col)
+inline uint32_t pack_color(const Color &col)
 {
 	return pack_color((int)(col.x * 255.0f), (int)(col.y * 255.0f), (int)(col.z * 255.0f),
 			(int)(col.w * 255.0f));
@@ -42,9 +42,9 @@ inline int unpack_alpha(uint32_t pix)
 	return (pix >> ALPHA_SHIFT) & 0xff;
 }
 
-inline color unpack_color(uint32_t pix)
+inline Color unpack_color(uint32_t pix)
 {
-	return color((float)unpack_red(pix), (float)unpack_green(pix), (float)unpack_blue(pix),
+	return Color((float)unpack_red(pix), (float)unpack_green(pix), (float)unpack_blue(pix),
 			(float)unpack_alpha(pix));
 }
 

@@ -13,19 +13,19 @@ using namespace henge;
 #endif
 
 #pragma pack (push,1)
-struct ms3d_header {
+struct MS3DHeader {
 	char magic[10];
 	int fmt_ver;
 } PACKED;
 
-struct ms3d_vertex {
+struct MS3DVertex {
 	char flags;
 	float pos[3];
 	char bone_id;		// -1 means no bone
 	char ref_count;
 } PACKED;
 
-struct ms3d_triangle {
+struct MS3DTriangle {
 	uint16_t flags;
 	uint16_t v[3];
 	float vnorm[3][3];
@@ -35,7 +35,7 @@ struct ms3d_triangle {
 	unsigned char group_idx;
 } PACKED;
 
-struct ms3d_material {
+struct MS3DMaterial {
 	char name[32];
 	float ambient[4];
 	float diffuse[4];
@@ -49,7 +49,7 @@ struct ms3d_material {
 } PACKED;
 #pragma pack (pop)
 
-class ms3d_group {
+class MS3DGroup {
 public:
 	char flags;
 	char name[32];
@@ -57,37 +57,37 @@ public:
 	uint16_t *tri_idx;
 	char matref;
 
-	ms3d_group();
-	~ms3d_group();
+	MS3DGroup();
+	~MS3DGroup();
 };
 
-class ms3d_file {
+class MS3DFile {
 public:
-	ms3d_header hdr;
-	ms3d_vertex *vert;
-	ms3d_triangle *tri;
-	ms3d_group *grp;
-	ms3d_material *mat;
+	MS3DHeader hdr;
+	MS3DVertex *vert;
+	MS3DTriangle *tri;
+	MS3DGroup *grp;
+	MS3DMaterial *mat;
 	int num_vert, num_tri, num_grp, num_mat;
 
-	ms3d_file();
-	~ms3d_file();
+	MS3DFile();
+	~MS3DFile();
 };
 
 #define UNEXP_EOF	"load_ms3d: premature end of file encountered\n"
 
-static bool read_header(FILE *fp, ms3d_header *hdr);
-static ms3d_vertex *read_vertices(FILE *fp, int *count);
-static ms3d_triangle *read_triangles(FILE *fp, int *count);
-static ms3d_group *read_groups(FILE *fp, int *count);
-static ms3d_material *read_materials(FILE *fp, int *count);
-static robject *cons_object(const ms3d_file *ms3d, const ms3d_group *grp);
+static bool read_header(FILE *fp, MS3DHeader *hdr);
+static MS3DVertex *read_vertices(FILE *fp, int *count);
+static MS3DTriangle *read_triangles(FILE *fp, int *count);
+static MS3DGroup *read_groups(FILE *fp, int *count);
+static MS3DMaterial *read_materials(FILE *fp, int *count);
+static RObject *cons_object(const MS3DFile *ms3d, const MS3DGroup *grp);
 
-static map<string, material> matlib;
+static map<string, Material> matlib;
 
-bool scene::load_ms3d(FILE *fp)
+bool Scene::load_ms3d(FILE *fp)
 {
-	ms3d_file ms3d;
+	MS3DFile ms3d;
 
 	if(!read_header(fp, &ms3d.hdr)) {
 		return false;
@@ -111,14 +111,14 @@ bool scene::load_ms3d(FILE *fp)
 
 	// add all materials to the scene material lib
 	for(int i=0; i<ms3d.num_mat; i++) {
-		ms3d_material *m = ms3d.mat + i;
+		MS3DMaterial *m = ms3d.mat + i;
 
-		color col_amb(m->ambient[0], m->ambient[1], m->ambient[2], m->ambient[3]);
-		color col_dif(m->diffuse[0], m->diffuse[1], m->diffuse[2], m->diffuse[3]);
-		color col_spec(m->specular[0], m->specular[1], m->specular[2], m->specular[3]);
-		color col_emis(m->emissive[0], m->emissive[1], m->emissive[2], m->emissive[3]);
+		Color col_amb(m->ambient[0], m->ambient[1], m->ambient[2], m->ambient[3]);
+		Color col_dif(m->diffuse[0], m->diffuse[1], m->diffuse[2], m->diffuse[3]);
+		Color col_spec(m->specular[0], m->specular[1], m->specular[2], m->specular[3]);
+		Color col_emis(m->emissive[0], m->emissive[1], m->emissive[2], m->emissive[3]);
 
-		material mat;
+		Material mat;
 		mat.set_name(ms3d.mat[i].name);
 
 		mat.set_color(col_amb, MATTR_AMBIENT);
@@ -136,7 +136,7 @@ bool scene::load_ms3d(FILE *fp)
 
 	// construct robjects from the ms3d groups and add them to the scene
 	for(int i=0; i<ms3d.num_grp; i++) {
-		robject *obj = cons_object(&ms3d, ms3d.grp + i);
+		RObject *obj = cons_object(&ms3d, ms3d.grp + i);
 
 		char *mat_name = ms3d.mat[(int)ms3d.grp[i].matref].name;
 		obj->set_material(matlib[mat_name]);
@@ -147,7 +147,7 @@ bool scene::load_ms3d(FILE *fp)
 	return true;
 }
 
-static bool read_header(FILE *fp, ms3d_header *hdr)
+static bool read_header(FILE *fp, MS3DHeader *hdr)
 {
 	if(fread(hdr, sizeof *hdr, 1, fp) < 1) {
 		error(UNEXP_EOF);
@@ -162,9 +162,9 @@ static bool read_header(FILE *fp, ms3d_header *hdr)
 }
 
 
-static ms3d_vertex *read_vertices(FILE *fp, int *count)
+static MS3DVertex *read_vertices(FILE *fp, int *count)
 {
-	ms3d_vertex *vert;
+	MS3DVertex *vert;
 	uint16_t vcount;
 
 	if(fread(&vcount, sizeof vcount, 1, fp) < 1) {
@@ -173,7 +173,7 @@ static ms3d_vertex *read_vertices(FILE *fp, int *count)
 	}
 
 	try {
-		vert = new ms3d_vertex[vcount];
+		vert = new MS3DVertex[vcount];
 	}
 	catch(...) {
 		return 0;
@@ -190,9 +190,9 @@ static ms3d_vertex *read_vertices(FILE *fp, int *count)
 }
 
 
-static ms3d_triangle *read_triangles(FILE *fp, int *count)
+static MS3DTriangle *read_triangles(FILE *fp, int *count)
 {
-	ms3d_triangle *tri;
+	MS3DTriangle *tri;
 	uint16_t tcount;
 
 	if(fread(&tcount, sizeof tcount, 1, fp) < 1) {
@@ -201,7 +201,7 @@ static ms3d_triangle *read_triangles(FILE *fp, int *count)
 	}
 
 	try {
-		tri = new ms3d_triangle[tcount];
+		tri = new MS3DTriangle[tcount];
 	}
 	catch(...) {
 		return 0;
@@ -218,9 +218,9 @@ static ms3d_triangle *read_triangles(FILE *fp, int *count)
 }
 
 
-static ms3d_group *read_groups(FILE *fp, int *count)
+static MS3DGroup *read_groups(FILE *fp, int *count)
 {
-	ms3d_group *grp;
+	MS3DGroup *grp;
 	uint16_t grp_count;
 
 	if(fread(&grp_count, sizeof grp_count, 1, fp) < 1) {
@@ -229,7 +229,7 @@ static ms3d_group *read_groups(FILE *fp, int *count)
 	}
 
 	try {
-		grp = new ms3d_group[grp_count];
+		grp = new MS3DGroup[grp_count];
 	}
 	catch(...) {
 		return 0;
@@ -261,9 +261,9 @@ static ms3d_group *read_groups(FILE *fp, int *count)
 	return grp;
 }
 
-static ms3d_material *read_materials(FILE *fp, int *count)
+static MS3DMaterial *read_materials(FILE *fp, int *count)
 {
-	ms3d_material *mat;
+	MS3DMaterial *mat;
 	uint16_t mat_count;
 
 	if(fread(&mat_count, sizeof mat_count, 1, fp) < 1) {
@@ -272,7 +272,7 @@ static ms3d_material *read_materials(FILE *fp, int *count)
 	}
 
 	try {
-		mat = new ms3d_material[mat_count];
+		mat = new MS3DMaterial[mat_count];
 	}
 	catch(...) {
 		return 0;
@@ -288,9 +288,9 @@ static ms3d_material *read_materials(FILE *fp, int *count)
 	return mat;
 }
 
-static robject *cons_object(const ms3d_file *ms3d, const ms3d_group *grp)
+static RObject *cons_object(const MS3DFile *ms3d, const MS3DGroup *grp)
 {
-	robject *obj = 0;
+	RObject *obj = 0;
 	Vector3 *varr = 0;
 	Vector3 *narr = 0;
 	Vector2 *tarr = 0;
@@ -298,7 +298,7 @@ static robject *cons_object(const ms3d_file *ms3d, const ms3d_group *grp)
 	int nelem = grp->tri_count * 3;
 
 	try {
-		obj = new robject;
+		obj = new RObject;
 		varr = new Vector3[nelem];
 		narr = new Vector3[nelem];
 		tarr = new Vector2[nelem];
@@ -313,7 +313,7 @@ static robject *cons_object(const ms3d_file *ms3d, const ms3d_group *grp)
 	for(int i=0; i<grp->tri_count; i++) {
 		for(int j=0; j<3; j++) {
 			int idx = i * 3 + j;
-			ms3d_triangle *tri = ms3d->tri + grp->tri_idx[i];
+			MS3DTriangle *tri = ms3d->tri + grp->tri_idx[i];
 
 			varr[idx] = Vector3(ms3d->vert[tri->v[j]].pos[0],
 					ms3d->vert[tri->v[j]].pos[1],
@@ -323,7 +323,7 @@ static robject *cons_object(const ms3d_file *ms3d, const ms3d_group *grp)
 		}
 	}
 
-	trimesh *mesh = obj->get_mesh();
+	TriMesh *mesh = obj->get_mesh();
 	mesh->set_data(EL_VERTEX, varr, nelem);
 	mesh->set_data(EL_NORMAL, narr, nelem);
 	mesh->set_data(EL_TEXCOORD, tarr, nelem);
@@ -335,17 +335,17 @@ static robject *cons_object(const ms3d_file *ms3d, const ms3d_group *grp)
 }
 
 
-ms3d_group::ms3d_group()
+MS3DGroup::MS3DGroup()
 {
 	tri_idx = 0;
 }
 
-ms3d_group::~ms3d_group()
+MS3DGroup::~MS3DGroup()
 {
 	delete [] tri_idx;
 }
 
-ms3d_file::ms3d_file()
+MS3DFile::MS3DFile()
 {
 	vert = 0;
 	tri = 0;
@@ -353,7 +353,7 @@ ms3d_file::ms3d_file()
 	mat = 0;
 }
 
-ms3d_file::~ms3d_file()
+MS3DFile::~MS3DFile()
 {
 	delete [] vert;
 	delete [] tri;

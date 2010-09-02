@@ -51,7 +51,7 @@
 
 namespace henge {
 
-extern struct gl_caps {
+extern struct GLCaps {
 	bool multitex;
 	bool glsl;
 	bool vbo;
@@ -70,64 +70,6 @@ extern struct gl_caps {
 	int max_rt;
 } caps;
 
-/*
-// ARB multitexture
-extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
-extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB;
-
-// ARB vertex buffer object
-extern PFNGLBINDBUFFERARBPROC glBindBufferARB;
-extern PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB;
-extern PFNGLGENBUFFERSARBPROC glGenBuffersARB;
-extern PFNGLBUFFERDATAARBPROC glBufferDataARB;
-extern PFNGLBUFFERSUBDATAARBPROC glBufferSubDataARB;
-extern PFNGLMAPBUFFERARBPROC glMapBufferARB;
-extern PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB;
-
-// ARB transpose matrix
-extern PFNGLLOADTRANSPOSEMATRIXFARBPROC glLoadTransposeMatrixfARB;
-extern PFNGLMULTTRANSPOSEMATRIXFARBPROC glMultTransposeMatrixfARB;
-
-// GLSL
-extern PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
-extern PFNGLCREATEPROGRAMOBJECTARBPROC glCreateProgramObjectARB;
-extern PFNGLDELETEOBJECTARBPROC glDeleteObjectARB;
-extern PFNGLSHADERSOURCEARBPROC glShaderSourceARB;
-extern PFNGLCOMPILESHADERARBPROC glCompileShaderARB;
-extern PFNGLATTACHOBJECTARBPROC glAttachObjectARB;
-extern PFNGLLINKPROGRAMARBPROC glLinkProgramARB;
-extern PFNGLUSEPROGRAMOBJECTARBPROC glUseProgramObjectARB;
-extern PFNGLGETOBJECTPARAMETERIVARBPROC glGetObjectParameterivARB;
-extern PFNGLGETINFOLOGARBPROC glGetInfoLogARB;
-extern PFNGLGETUNIFORMLOCATIONARBPROC glGetUniformLocationARB;
-extern PFNGLUNIFORM1IARBPROC glUniform1iARB;
-extern PFNGLUNIFORM1FARBPROC glUniform1fARB;
-extern PFNGLUNIFORM3FARBPROC glUniform3fARB;
-extern PFNGLUNIFORM4FARBPROC glUniform4fARB;
-extern PFNGLUNIFORMMATRIX4FVARBPROC glUniformMatrix4fvARB;
-extern PFNGLGETACTIVEUNIFORMARBPROC glGetActiveUniformARB;
-extern PFNGLBINDATTRIBLOCATIONARBPROC glBindAttribLocationARB;
-extern PFNGLVERTEXATTRIB3FARBPROC glVertexAttrib3fARB;
-extern PFNGLENABLEVERTEXATTRIBARRAYARBPROC glEnableVertexAttribArrayARB;
-extern PFNGLVERTEXATTRIBPOINTERARBPROC glVertexAttribPointerARB;
-extern PFNGLDISABLEVERTEXATTRIBARRAYARBPROC glDisableVertexAttribArrayARB;
-
-// EXT framebuffer object
-extern PFNGLBINDRENDERBUFFEREXTPROC glBindRenderbufferEXT;
-extern PFNGLDELETERENDERBUFFERSEXTPROC glDeleteRenderbuffersEXT;
-extern PFNGLGENRENDERBUFFERSEXTPROC glGenRenderbuffersEXT;
-extern PFNGLRENDERBUFFERSTORAGEEXTPROC glRenderbufferStorageEXT;
-extern PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT;
-extern PFNGLDELETEFRAMEBUFFERSEXTPROC glDeleteFramebuffersEXT;
-extern PFNGLGENFRAMEBUFFERSEXTPROC glGenFramebuffersEXT;
-extern PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC glCheckFramebufferStatusEXT;
-extern PFNGLFRAMEBUFFERTEXTURE2DEXTPROC glFramebufferTexture2DEXT;
-extern PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC glFramebufferRenderbufferEXT;
-extern PFNGLGENERATEMIPMAPEXTPROC glGenerateMipmapEXT;
-
-// ARB draw buffers
-extern PFNGLDRAWBUFFERSARBPROC glDrawBuffersARB;
-*/
 bool init_opengl();
 
 void store_matrix(Matrix4x4 *mat);

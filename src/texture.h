@@ -6,7 +6,7 @@
 
 namespace henge {
 
-class texture;
+class Texture;
 
 enum {
 	TEX_GUESS,
@@ -20,26 +20,26 @@ bool init_textures();
 void destroy_textures();
 
 // texture manager interface
-texture *get_texture(const char *name, unsigned int textype = TEX_GUESS, unsigned int pixfmt = GL_RGBA);
-const char *get_texture_name(const texture *tex);
-bool add_texture(const char *name, texture *tex);
+Texture *get_texture(const char *name, unsigned int textype = TEX_GUESS, unsigned int pixfmt = GL_RGBA);
+const char *get_texture_name(const Texture *tex);
+bool add_texture(const char *name, Texture *tex);
 bool dump_textures(bool managed_only = false);
 
 // render to texture interface
 bool push_render_target();
 bool pop_render_target();
-bool set_render_target(texture *tex);
+bool set_render_target(Texture *tex);
 bool set_render_targets(int num, ...);
 
-void set_texture(const texture *tex, int unit = 0);
+void set_texture(const Texture *tex, int unit = 0);
 
 // don't use this directly, included here just because MSVC chokes without the prototype
-bool set_render_target_fbo(texture *tex, int mrt_idx);
+bool set_render_target_fbo(Texture *tex, int mrt_idx);
 
 // returns the next power of 2 (if x is a power of 2 it just returns x)
 int round_pow2(int x);
 
-class texture {
+class Texture {
 protected:
 	unsigned int tid, rt_depth;
 	mutable uint32_t *pixels;
@@ -55,8 +55,8 @@ protected:
 	bool gen_mipmaps;
 
 public:
-	texture();
-	virtual ~texture();
+	Texture();
+	virtual ~Texture();
 
 	virtual bool load(const char *fname) = 0;
 	virtual bool save(const char *fname) = 0;
@@ -97,13 +97,13 @@ public:
 
 	void bind(int tunit = 0) const;
 
-	friend bool henge::set_render_target_fbo(texture *tex, int mrt_idx);
+	friend bool henge::set_render_target_fbo(Texture *tex, int mrt_idx);
 };
 
-class texture_2d : public texture {
+class Texture2D : public Texture {
 public:
-	texture_2d();
-	virtual ~texture_2d();
+	Texture2D();
+	virtual ~Texture2D();
 
 	virtual void set_mipmap_gen(bool genmip);
 
@@ -111,7 +111,7 @@ public:
 	virtual bool save(const char *fname);
 	virtual bool generate(const char *expr);
 
-	void set_image(const pixmap &img);
+	void set_image(const Pixmap &img);
 	void set_image(uint32_t *pixels, int x, int y);
 	uint32_t *get_image() const;
 
@@ -119,7 +119,7 @@ public:
 	virtual void copy_frame(int x, int y, int xsz, int ysz);
 };
 
-class texture_cube : public texture {
+class TextureCube : public Texture {
 protected:
 	int size;
 	bool face_tex_inited[6];
@@ -127,9 +127,9 @@ protected:
 	unsigned int transp_cube;
 
 public:
-	texture_cube();
-	virtual ~texture_cube();
-	
+	TextureCube();
+	virtual ~TextureCube();
+
 	virtual bool is_transparent() const;
 
 	virtual bool load(const char *fname);
@@ -137,7 +137,7 @@ public:
 	virtual bool save(const char *fname);
 	virtual bool generate(const char *expr);
 
-	void set_image(const pixmap &img, unsigned int face);
+	void set_image(const Pixmap &img, unsigned int face);
 	void set_image(uint32_t *pixels, int size, unsigned int face);
 	uint32_t *get_image(unsigned int face) const;
 
@@ -150,7 +150,7 @@ public:
 };
 
 // helper function, converts a heightfield to a normalmap
-void heightmap_to_normalmap(texture_2d *tex, float scale_fact = 1.0f);
+void heightmap_to_normalmap(Texture2D *tex, float scale_fact = 1.0f);
 
 }
 

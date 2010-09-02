@@ -8,24 +8,24 @@
 using namespace std;
 using namespace henge;
 
-scene::scene()
+Scene::Scene()
 {
 	active_cam = 0;
 }
 
-scene::~scene()
+Scene::~Scene()
 {
 	clear();
 }
 
-void scene::calc_bounds() const
+void Scene::calc_bounds() const
 {
 	bsph.center = Vector3(0, 0, 0);
 	bbox.min.x = bbox.min.y = bbox.min.z = FLT_MAX;
 	bbox.max.x = bbox.max.y = bbox.max.z = -FLT_MAX;
 
 	for(int i=0; i<object_count(); i++) {
-		aabox *box = objects[i]->get_aabox();
+		AABox *box = objects[i]->get_aabox();
 		//bsphere *sph = objects[i]->get_bsphere();
 
 		if(box->min.x < bbox.min.x) bbox.min.x = box->min.x;
@@ -39,7 +39,7 @@ void scene::calc_bounds() const
 	bounds_valid = true;
 }
 
-bool scene::load(const char *fname)
+bool Scene::load(const char *fname)
 {
 	char path[PATH_MAX];
 	if(!find_file(fname, path)) {
@@ -89,7 +89,7 @@ bool scene::load(const char *fname)
 	return false;
 }
 
-void scene::clear()
+void Scene::clear()
 {
 	clear_objects();
 	clear_lights();
@@ -98,7 +98,7 @@ void scene::clear()
 	clear_renderfuncs();
 }
 
-void scene::clear_objects()
+void Scene::clear_objects()
 {
 	for(size_t i=0; i<objects.size(); i++) {
 		if(get_auto_destruct(objects[i])) {
@@ -108,7 +108,7 @@ void scene::clear_objects()
 	objects.clear();
 }
 
-void scene::clear_lights()
+void Scene::clear_lights()
 {
 	for(size_t i=0; i<lights.size(); i++) {
 		if(get_auto_destruct(lights[i])) {
@@ -118,7 +118,7 @@ void scene::clear_lights()
 	lights.clear();
 }
 
-void scene::clear_cameras()
+void Scene::clear_cameras()
 {
 	for(size_t i=0; i<cameras.size(); i++) {
 		if(get_auto_destruct(cameras[i])) {
@@ -128,7 +128,7 @@ void scene::clear_cameras()
 	cameras.clear();
 }
 
-void scene::clear_particles()
+void Scene::clear_particles()
 {
 	for(size_t i=0; i<particles.size(); i++) {
 		if(get_auto_destruct(particles[i])) {
@@ -138,17 +138,17 @@ void scene::clear_particles()
 	particles.clear();
 }
 
-void scene::clear_renderfuncs()
+void Scene::clear_renderfuncs()
 {
 	rfuncs.clear();
 }
 
-void scene::set_auto_destruct(const void *item, bool auto_del)
+void Scene::set_auto_destruct(const void *item, bool auto_del)
 {
 	del_item[item] = auto_del;
 }
 
-bool scene::get_auto_destruct(const void *item) const
+bool Scene::get_auto_destruct(const void *item) const
 {
 	map<const void*, bool>::const_iterator iter = del_item.find(item);
 	if(iter == del_item.end()) {
@@ -157,7 +157,7 @@ bool scene::get_auto_destruct(const void *item) const
 	return iter->second;
 }
 
-bool scene::add_object(robject *obj)
+bool Scene::add_object(RObject *obj)
 {
 	const char *name = obj->get_name() ? obj->get_name() : "<unnamed>";
 	try {
@@ -173,7 +173,7 @@ bool scene::add_object(robject *obj)
 	return true;
 }
 
-bool scene::add_light(light *lt)
+bool Scene::add_light(Light *lt)
 {
 	try {
 		lights.push_back(lt);
@@ -185,7 +185,7 @@ bool scene::add_light(light *lt)
 	return true;
 }
 
-bool scene::add_camera(camera *cam)
+bool Scene::add_camera(Camera *cam)
 {
 	try {
 		cameras.push_back(cam);
@@ -203,7 +203,7 @@ bool scene::add_camera(camera *cam)
 }
 
 
-bool scene::add_particles(particle_system *psys)
+bool Scene::add_particles(ParticleSystem *psys)
 {
 	try {
 		particles.push_back(psys);
@@ -215,7 +215,7 @@ bool scene::add_particles(particle_system *psys)
 	return true;
 }
 
-bool scene::add_render_func(const render_func &rfunc)
+bool Scene::add_render_func(const RenderFunc &rfunc)
 {
 	try {
 		rfuncs.push_back(rfunc);
@@ -226,21 +226,21 @@ bool scene::add_render_func(const render_func &rfunc)
 	return true;
 }
 
-robject *scene::get_object(const char *name) const
+RObject *Scene::get_object(const char *name) const
 {
-	map<string, robject*>::const_iterator iter = objmap.find(name);
+	map<string, RObject*>::const_iterator iter = objmap.find(name);
 	if(iter != objmap.end()) {
 		return iter->second;
 	}
 	return 0;
 }
 
-robject *scene::get_object(int idx) const
+RObject *Scene::get_object(int idx) const
 {
 	return objects[idx];
 }
 
-light *scene::get_light(const char *name) const
+Light *Scene::get_light(const char *name) const
 {
 	for(size_t i=0; i<lights.size(); i++) {
 		if(lights[i]->get_name()) {
@@ -252,12 +252,12 @@ light *scene::get_light(const char *name) const
 	return 0;
 }
 
-light *scene::get_light(int idx) const
+Light *Scene::get_light(int idx) const
 {
 	return lights[idx];
 }
 
-camera *scene::get_camera(const char *name) const
+Camera *Scene::get_camera(const char *name) const
 {
 	for(size_t i=0; i<cameras.size(); i++) {
 		if(cameras[i]->get_name()) {
@@ -269,15 +269,15 @@ camera *scene::get_camera(const char *name) const
 	return 0;
 }
 
-camera *scene::get_camera(int idx) const
+Camera *Scene::get_camera(int idx) const
 {
 	return cameras[idx];
 }
 
 
-bool scene::remove_object(const char *name)
+bool Scene::remove_object(const char *name)
 {
-	vector<robject*>::iterator iter = objects.begin();
+	vector<RObject*>::iterator iter = objects.begin();
 	while(iter != objects.end()) {
 		if(strcmp((*iter)->get_name(), name) == 0) {
 			objects.erase(iter);
@@ -289,118 +289,118 @@ bool scene::remove_object(const char *name)
 	return false;
 }
 
-robject **scene::get_objects()
+RObject **Scene::get_objects()
 {
 	return objects.empty() ? 0 : &objects[0];
 }
 
-robject * const * scene::get_objects() const
+RObject * const * Scene::get_objects() const
 {
 	return objects.empty() ? 0 : &objects[0];
 }
 
-light **scene::get_lights()
+Light **Scene::get_lights()
 {
 	return lights.empty() ? 0 : &lights[0];
 }
 
-light * const * scene::get_lights() const
+Light * const * Scene::get_lights() const
 {
 	return lights.empty() ? 0 : &lights[0];
 }
 
-camera **scene::get_cameras()
+Camera **Scene::get_cameras()
 {
 	return cameras.empty() ? 0 : &cameras[0];
 }
 
-camera * const * scene::get_cameras() const
+Camera * const * Scene::get_cameras() const
 {
 	return cameras.empty() ? 0 : &cameras[0];
 }
 
 
-particle_system **scene::get_particles()
+ParticleSystem **Scene::get_particles()
 {
 	return particles.empty() ? 0 : &particles[0];
 }
 
-particle_system * const * scene::get_particles() const
+ParticleSystem * const * Scene::get_particles() const
 {
 	return particles.empty() ? 0 : &particles[0];
 }
 
-render_func *scene::get_render_funcs()
+RenderFunc *Scene::get_render_funcs()
 {
 	return rfuncs.empty() ? 0 : &rfuncs[0];
 }
 
-const render_func *scene::get_render_funcs() const
+const RenderFunc *Scene::get_render_funcs() const
 {
 	return rfuncs.empty() ? 0 : &rfuncs[0];
 }
 
-int scene::object_count() const
+int Scene::object_count() const
 {
 	return (int)objects.size();
 }
 
-int scene::light_count() const
+int Scene::light_count() const
 {
 	return (int)lights.size();
 }
 
-int scene::camera_count() const
+int Scene::camera_count() const
 {
 	return (int)cameras.size();
 }
 
 
-int scene::particle_count() const
+int Scene::particle_count() const
 {
 	return (int)particles.size();
 }
 
-int scene::render_func_count() const
+int Scene::render_func_count() const
 {
 	return (int)rfuncs.size();
 }
 
-bool scene::merge(const scene &scn)
+bool Scene::merge(const Scene &scn)
 {
-	robject * const * obj = scn.get_objects();
+	RObject * const * obj = scn.get_objects();
 	int num_obj = scn.object_count();
 
 	for(int i=0; i<num_obj; i++) {
 		add_object(obj[i]->clone());
 	}
 
-	light * const * lights = scn.get_lights();
+	Light * const * lights = scn.get_lights();
 	int num_lights = scn.light_count();
 
 	for(int i=0; i<num_lights; i++) {
 		add_light(lights[i]->clone());
 	}
 
-	camera * const * cam = scn.get_cameras();
+	Camera * const * cam = scn.get_cameras();
 	int num_cam = scn.camera_count();
 
 	for(int i=0; i<num_cam; i++) {
 		add_camera(cam[i]->clone());
 	}
 
-	particle_system * const * psys = scn.get_particles();
+	ParticleSystem * const * psys = scn.get_particles();
 	int num_psys = scn.particle_count();
 
 	for(int i=0; i<num_psys; i++) {
-		particle_system *newpsys = new particle_system(*(psys[i]));
+		ParticleSystem *newpsys = new ParticleSystem(*(psys[i]));
 		add_particles(newpsys);
 	}
 
 	return true;
 }
 
-const aabox *scene::get_bbox() const
+const AABox *Scene::get_bbox() const
 {
 	if(!bounds_valid) {
 		calc_bounds();
@@ -408,7 +408,7 @@ const aabox *scene::get_bbox() const
 	return &bbox;
 }
 
-const bsphere *scene::get_bsphere() const
+const BSphere *Scene::get_bsphere() const
 {
 	if(!bounds_valid) {
 		calc_bounds();
@@ -416,7 +416,7 @@ const bsphere *scene::get_bsphere() const
 	return &bsph;
 }
 
-void scene::setup_lights(unsigned int msec) const
+void Scene::setup_lights(unsigned int msec) const
 {
 	if(lights.empty()) {
 		return;
@@ -438,20 +438,20 @@ void scene::setup_lights(unsigned int msec) const
 	cache_uniform("uc_num_lights", num_lights);
 }
 
-void scene::setup_camera(unsigned int msec) const
+void Scene::setup_camera(unsigned int msec) const
 {
 	if(active_cam) {
 		active_cam->bind(msec);
 	}
 }
 
-void scene::render(unsigned int msec) const
+void Scene::render(unsigned int msec) const
 {
 	get_renderer()->render(this, msec);
 }
 
 /*
-void scene::render(unsigned int msec) const
+void Scene::render(unsigned int msec) const
 {
 	current_time = msec;
 
@@ -465,13 +465,13 @@ void scene::render(unsigned int msec) const
 	// TODO handle shadows and reflections
 
 
-	list<robject*> transp_obj;
+	list<RObject*> transp_obj;
 
 	if(rend_mask & REND_OBJ) {
 		// opaque objects pass, push transparent ones on another list for
 		// sorting back->front and rendering separately.
 		for(size_t i=0; i<objects.size(); i++) {
-			const material *mat = objects[i]->get_material_ptr();
+			const Material *mat = objects[i]->get_material_ptr();
 			if(mat && mat->is_transparent()) {
 				transp_obj.push_back(objects[i]);
 			} else {
@@ -492,7 +492,7 @@ void scene::render(unsigned int msec) const
 		// transparent objects pass
 		transp_obj.sort(obj_cmp);
 
-		list<robject*>::const_iterator iter = transp_obj.begin();
+		list<RObject*>::const_iterator iter = transp_obj.begin();
 		while(iter != transp_obj.end()) {
 			(*iter++)->render(msec);
 		}

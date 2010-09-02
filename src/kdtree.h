@@ -5,38 +5,38 @@
 
 namespace henge {
 
-template <typename T, typename S> struct kdnode;
-template <typename T, typename S> class kdres;
+template <typename T, typename S> struct KDNode;
+template <typename T, typename S> class KDRes;
 
 
 template <typename T, typename S = float>
-class kdtree {
+class KDTree {
 private:
 	int dim;
-	kdnode<T, S> *root;
+	KDNode<T, S> *root;
 
-	void clear_rec(kdnode<T, S> *node);
-	bool insert_rec(kdnode<T, S> *&node, const S *pos, const T &data, int dir);
-	int nearest_rec(kdnode<T, S> *node, const S *pos, S range, kdres<T, S> *res) const;
+	void clear_rec(KDNode<T, S> *node);
+	bool insert_rec(KDNode<T, S> *&node, const S *pos, const T &data, int dir);
+	int nearest_rec(KDNode<T, S> *node, const S *pos, S range, KDRes<T, S> *res) const;
 
 public:
-	kdtree(int k = 3);
-	~kdtree();
+	KDTree(int k = 3);
+	~KDTree();
 
 	void clear();
 
 	bool insert(const S *pos, const T &data);
 	bool insert(S x, S y, S z, const T &data);
 
-	kdres<T, S> *nearest(const S *pos, S range, bool ordered = false) const;
-	kdres<T, S> *nearest(S x, S y, S z, S range, bool ordered = false) const;
+	KDRes<T, S> *nearest(const S *pos, S range, bool ordered = false) const;
+	KDRes<T, S> *nearest(S x, S y, S z, S range, bool ordered = false) const;
 };
 
 template <typename T, typename S = float>
-class kdres {
+class KDRes {
 private:
-	std::list<kdnode<T, S>*> rlist;
-	typename std::list<kdnode<T, S>*>::iterator iter;
+	std::list<KDNode<T, S>*> rlist;
+	typename std::list<KDNode<T, S>*>::iterator iter;
 	int sz;
 
 public:
@@ -49,7 +49,7 @@ public:
 	const T &get_data() const;
 	const S *get_pos() const;
 
-	friend class kdtree<T, S>;
+	friend class KDTree<T, S>;
 };
 
 

@@ -2,13 +2,13 @@
 
 using namespace henge;
 
-void henge::overlay(const texture *tex, const color &col, const shader *sdr)
+void henge::overlay(const Texture *tex, const Color &col, const Shader *sdr)
 {
 	overlay(Vector2(0, 0), Vector2(1, 1), col, tex, sdr, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void henge::overlay(const Vector2 &pos, const Vector2 &sz, const color &col,
-		const texture *tex, const shader *sdr, unsigned int src_blend, unsigned int dst_blend)
+void henge::overlay(const Vector2 &pos, const Vector2 &sz, const Color &col,
+		const Texture *tex, const Shader *sdr, unsigned int src_blend, unsigned int dst_blend)
 {
 	glPushAttrib(GL_ENABLE_BIT | GL_TRANSFORM_BIT | GL_CURRENT_BIT | GL_POLYGON_BIT);
 

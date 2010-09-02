@@ -3,20 +3,20 @@
 
 using namespace henge;
 
-camera::~camera() {}
+Camera::~Camera() {}
 
-camera *camera::clone() const
+Camera *Camera::clone() const
 {
-	printf("camera::clone\n");
-	return new camera(*this);
+	printf("Camera::clone\n");
+	return new Camera(*this);
 }
 
-Matrix4x4 camera::get_matrix(unsigned int time) const
+Matrix4x4 Camera::get_matrix(unsigned int time) const
 {
 	return get_xform_matrix(time).inverse();
 }
 
-void camera::bind(unsigned int time) const
+void Camera::bind(unsigned int time) const
 {
 	glMatrixMode(GL_MODELVIEW);
 
@@ -24,55 +24,55 @@ void camera::bind(unsigned int time) const
 }
 
 
-target_camera::target_camera()
+TargetCamera::TargetCamera()
 {
 	set_position(Vector3(0, 5, 10));
 	set_target(Vector3(0, 0, 0));
 	set_roll(0.0f);
 }
 
-target_camera::target_camera(const Vector3 &pos, const Vector3 &targ)
+TargetCamera::TargetCamera(const Vector3 &pos, const Vector3 &targ)
 {
 	set_position(pos);
 	set_target(targ);
 	set_roll(0.0f);
 }
 
-target_camera::~target_camera() {}
+TargetCamera::~TargetCamera() {}
 
-target_camera *target_camera::clone() const
+TargetCamera *TargetCamera::clone() const
 {
-	printf("target_camera::clone\n");
-	return new target_camera(*this);
+	printf("TargetCamera::clone\n");
+	return new TargetCamera(*this);
 }
 
-void target_camera::set_target(const Vector3 &pos, unsigned int time)
+void TargetCamera::set_target(const Vector3 &pos, unsigned int time)
 {
 	target.set_position(pos, time);
 }
 
-Vector3 target_camera::get_target(unsigned int time) const
+Vector3 TargetCamera::get_target(unsigned int time) const
 {
 	return target.get_position(time);
 }
 
-void target_camera::set_roll(float roll, unsigned int time)
+void TargetCamera::set_roll(float roll, unsigned int time)
 {
 	// XXX piggyback on the unused scale track of the target
 	target.set_scaling(Vector3(roll, roll, roll), time);
 }
 
-float target_camera::get_roll(unsigned int time) const
+float TargetCamera::get_roll(unsigned int time) const
 {
 	// XXX piggyback on the unused scale track of the target
 	return target.get_scaling(time).x;
 }
 
-Matrix4x4 target_camera::get_matrix(unsigned int time) const
+Matrix4x4 TargetCamera::get_matrix(unsigned int time) const
 {
 	Vector3 pos = get_position(time);
 	Vector3 targ = target.get_position(time);
-	
+
 	Vector3 up(0, 1, 0);
 	Vector3 dir = (targ - pos).normalized();
 	Vector3 right = cross_product(dir, up).normalized();

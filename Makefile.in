@@ -1,17 +1,33 @@
-ccsrc = $(wildcard src/*.cc src/vmath/*.cc)
-csrc = $(wildcard src/*.c src/image/*.c src/GL/*.c)
+ccsrc = $(wildcard src/*.cc)
+csrc = $(wildcard src/*.c)
 obj = $(ccsrc:.cc=.o) $(csrc:.c=.o)
-lib_a = libhenge.a
-lib_so = libhenge.so
+lib_a = libhenge2.a
 
-inc = -Isrc -Isrc/vmath -Isrc/image -Isrc/vfs
-warn = -Wall -Wno-strict-aliasing
+somajor = 2
+sominor = 0
+
+ifeq ($(shell uname -s), Darwin)
+	lib_so = libhenge2.dylib
+	shared = -dynamiclib
+	gl_libs = -framework OpenGL
+else
+	linkname = libhenge2.so
+	soname = $(linkname).$(somajor)
+	lib_so = $(soname).$(sominor)
+	shared = -shared -Wl,-soname,$(soname)
+	gl_libs = -lGL -lGLU
+	pic = -fPIC
+endif
+
+inc = -Isrc
+warn = -Wall
 
 CC = gcc
 CXX = g++
-CFLAGS = -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) -DGLEW_STATIC
-CXXFLAGS = -ansi -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) -DGLEW_STATIC
-LDFLAGS = $(gl_libs) -lm -lpng -ljpeg
+CFLAGS = -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) `pkg-config --cflags vmath imago`
+CXXFLAGS = -ansi -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) `pkg-config --cflags vmath imago`
+LDFLAGS = $(gl_libs) -lm `pkg-config --libs vmath imago`
+
 
 .PHONY: all
 all: $(lib_a) $(lib_so)
@@ -40,32 +56,27 @@ cleandep:
 
 .PHONY: distclean
 distclean: clean cleandep
-	rm -f Makefile henge.pc
+	rm -f Makefile henge2.pc
 
 .PHONY: dist
 dist: distclean
-	cd ..; tar czvf henge.tar.gz henge; cd henge
+	cd ..; tar czvf henge2.tar.gz henge2; cd henge2
 
 .PHONY: install
 install: $(lib_a) $(lib_so)
-	install -d $(PREFIX)/lib
-	install -m 644 $(lib_a) $(lib_so) $(PREFIX)/lib
-	install -d $(PREFIX)/include/henge
-	cd src; install -m 644 *.h *.inl $(PREFIX)/include/henge
-	install -d $(PREFIX)/include/henge/vmath
-	cd src/vmath; install -m 644 *.h *.inl $(PREFIX)/include/henge/vmath
-	install -d $(PREFIX)/include/henge/GL
-	cd src/GL; install -m 644 *.h $(PREFIX)/include/henge/GL
-	install -d $(PREFIX)/lib/pkgconfig
-	install -m 644 henge.pc $(PREFIX)/lib/pkgconfig
+	test -d $(PREFIX)/include/henge2 || mkdir -p $(PREFIX)/include/henge2
+	test -d $(PREFIX)/lib || mkdir -p $(PREFIX)/lib
+	test -d $(PREFIX)/lib/pkgconfig || mkdir -p $(PREFIX)/lib/pkgconfig
+	cp $(lib_a) $(PREFIX)/lib/$(lib_a)
+	cp $(lib_so) $(PREFIX)/lib/$(lib_so)
+	cd $(PREFIX)/lib && ( test -z "$(linkname)" || ln -s $(lib_so) $(linkname) )
+	cd src && cp *.h *.inl $(PREFIX)/include/henge2/
+	cp henge2.pc $(PREFIX)/lib/pkgconfig/henge2.pc
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(PREFIX)/lib/$(lib_a) $(PREFIX)/lib/$(lib_so)
-	rm -f $(PREFIX)/include/henge/GL/*
-	rmdir $(PREFIX)/include/henge/GL
-	rm -f $(PREFIX)/include/henge/vmath/*
-	rmdir $(PREFIX)/include/henge/vmath
-	rm -f $(PREFIX)/include/henge/*
-	rmdir $(PREFIX)/include/henge
-	rm -f $(PREFIX)/lib/pkgconfig/henge.pc
+	rm -f $(PREFIX)/include/henge2/*
+	rmdir $(PREFIX)/include/henge2
+	rm -f $(PREFIX)/lib/$(lib_so)
+	rm -f $(PREFIX)/lib/$(linkname)
+	rm -f $(PREFIX)/lib/pkgconfig/henge2.pc
