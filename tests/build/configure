@@ -57,20 +57,6 @@ if [ "$opt" = yes ]; then
 fi
 
 echo "app_name = $app_name" >>Makefile
-
-sys=`uname -s`
-if [ "$sys" = Darwin ]; then
-	gl_libs='-framework OpenGL -framework GLUT'
-else
-	if [ "$sys" != mingw ]; then
-		echo 'pic = -fPIC' >>Makefile
-		gl_libs='-lGL -lGLU -lglut'
-	else
-		gl_libs='-lopengl32 -lglu32 -lglut32'
-		echo 'bin_ext = .exe' >>Makefile
-	fi
-fi
-echo "gl_libs = $gl_libs" >>Makefile
 echo >>Makefile
 cat Makefile.in >>Makefile
 

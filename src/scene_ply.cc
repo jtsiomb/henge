@@ -2,7 +2,7 @@
 
 using namespace henge;
 
-bool scene::load_ply(FILE *fp)
+bool Scene::load_ply(FILE *fp)
 {
 	return false;	// TODO implement
 }

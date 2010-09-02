@@ -6,9 +6,9 @@ using namespace henge;
 
 static void geosphere(std::vector<Vector3> *verts, const Vector3 &v1, const Vector3 &v2, const Vector3 &v3, int iter);
 
-static bool generic_heightfield(trimesh *mesh, int usub, int vsub,
-		float umax, float vmax,	gen_sample_func dist_func, void *dist_func_cls,
-		Vector3 (*vertex)(float, float, float), tex_coord_gen tcgen);
+static bool generic_heightfield(TriMesh *mesh, int usub, int vsub,
+		float umax, float vmax,	GenSampleFunc dist_func, void *dist_func_cls,
+		Vector3 (*vertex)(float, float, float), TexCoordGen tcgen);
 
 static Vector3 vertex_revol(float u, float v, float dist);
 static Vector3 vertex_plane(float u, float v, float dist);
@@ -18,7 +18,7 @@ static Vector2 tex_xy(float u, float v, const Vector3 &vert);
 static Vector2 tex_uv(float u, float v, const Vector3 &vert);
 
 
-// this array must remain in sync with the tex_coord_gen enumeration in ggen.h
+// this array must remain in sync with the TexCoordGen enumeration in ggen.h
 
 static Vector2 (*tex_func[])(float, float, const Vector3&) = {
 	tex_xz,
@@ -29,8 +29,8 @@ static Vector2 (*tex_func[])(float, float, const Vector3&) = {
 /* gen_revol (surface of revolution) is a special case of a heightfield, defined
  * by the distance around the Y axis.
  */
-bool henge::gen_revol(trimesh *mesh, int usub, int vsub, float umax, float vmax,
-		gen_sample_func dist_func, void *dist_func_cls, tex_coord_gen tcgen)
+bool henge::gen_revol(TriMesh *mesh, int usub, int vsub, float umax, float vmax,
+		GenSampleFunc dist_func, void *dist_func_cls, TexCoordGen tcgen)
 {
 	return generic_heightfield(mesh, usub, vsub, umax, vmax, dist_func, dist_func_cls,
 			vertex_revol, tcgen);
@@ -39,8 +39,8 @@ bool henge::gen_revol(trimesh *mesh, int usub, int vsub, float umax, float vmax,
 /* gen_height (heighfield) is also defined in terms of the generic_heightfield
  * function
  */
-bool henge::gen_height(trimesh *mesh, int usub, int vsub, gen_sample_func height_func,
-		void *height_func_cls, tex_coord_gen tcgen)
+bool henge::gen_height(TriMesh *mesh, int usub, int vsub, GenSampleFunc height_func,
+		void *height_func_cls, TexCoordGen tcgen)
 {
 	return generic_heightfield(mesh, usub, vsub, 1, 1, height_func, height_func_cls,
 			vertex_plane, tcgen);
@@ -60,9 +60,9 @@ static Vector3 vertex_revol_sph(float u, float v, float dist)
 	return Vector3(sin(u * TWO_PI) * dist, 2.0 * (v - 0.5), cos(u * TWO_PI) * dist).normalized();
 }
 
-// a sphere is a surface of revolution ... 
-bool henge::gen_sphere(trimesh *mesh, float rad, int slices, int stacks, float umax,
-		float vmax, tex_coord_gen tcgen)
+// a sphere is a surface of revolution ...
+bool henge::gen_sphere(TriMesh *mesh, float rad, int slices, int stacks, float umax,
+		float vmax, TexCoordGen tcgen)
 {
 	if(!generic_heightfield(mesh, slices, stacks, umax, vmax, sph_dist_func, &rad,
 			vertex_revol_sph, tcgen)) {
@@ -87,8 +87,8 @@ static float cyl_dist_func(float u, float v, void *cls)
 }
 
 // a cylinder is a surface of revolution ...
-bool henge::gen_cylinder(trimesh *mesh, float rad, int slices, int stacks, float umax,
-		tex_coord_gen tcgen)
+bool henge::gen_cylinder(TriMesh *mesh, float rad, int slices, int stacks, float umax,
+		TexCoordGen tcgen)
 {
 	return gen_revol(mesh, slices, stacks, umax, 1, cyl_dist_func, &rad, tcgen);
 }
@@ -100,7 +100,7 @@ static float plane_dist_func(float u, float v, void *cls)
 }
 
 // a plane is a heightfield with a constant height of 0
-bool henge::gen_plane(trimesh *mesh, int usub, int vsub, tex_coord_gen tcgen)
+bool henge::gen_plane(TriMesh *mesh, int usub, int vsub, TexCoordGen tcgen)
 {
 	return gen_height(mesh, usub, vsub, plane_dist_func, 0, tcgen);
 }
@@ -148,13 +148,13 @@ static Vector2 box_tc[] = {
 */
 
 // TODO take tcgen into account
-bool henge::gen_box(trimesh *mesh, float xsz, float ysz, float zsz, int xsub, int ysub, int zsub, tex_coord_gen tcgen)
+bool henge::gen_box(TriMesh *mesh, float xsz, float ysz, float zsz, int xsub, int ysub, int zsub, TexCoordGen tcgen)
 {
 
 	// front
 	{
 		Matrix4x4 mat;
-		trimesh face;
+		TriMesh face;
 		gen_plane(&face, xsub, ysub);
 		mat.rotate(Vector3(HALF_PI, 0, 0));
 		mat.translate(Vector3(0, zsz, 0));
@@ -166,7 +166,7 @@ bool henge::gen_box(trimesh *mesh, float xsz, float ysz, float zsz, int xsub, in
 	// right
 	{
 		Matrix4x4 mat;
-		trimesh face;
+		TriMesh face;
 		gen_plane(&face, zsub, ysub);
 		mat.rotate(Vector3(0, HALF_PI, 0));
 		mat.rotate(Vector3(HALF_PI, 0, 0));
@@ -179,7 +179,7 @@ bool henge::gen_box(trimesh *mesh, float xsz, float ysz, float zsz, int xsub, in
 	// back
 	{
 		Matrix4x4 mat;
-		trimesh face;
+		TriMesh face;
 		gen_plane(&face, xsub, ysub);
 		mat.rotate(Vector3(0, PI, 0));
 		mat.rotate(Vector3(HALF_PI, 0, 0));
@@ -192,7 +192,7 @@ bool henge::gen_box(trimesh *mesh, float xsz, float ysz, float zsz, int xsub, in
 	// left
 	{
 		Matrix4x4 mat;
-		trimesh face;
+		TriMesh face;
 		gen_plane(&face, zsub, ysub);
 		mat.rotate(Vector3(0, -HALF_PI, 0));
 		mat.rotate(Vector3(HALF_PI, 0, 0));
@@ -205,7 +205,7 @@ bool henge::gen_box(trimesh *mesh, float xsz, float ysz, float zsz, int xsub, in
 	// top
 	{
 		Matrix4x4 mat;
-		trimesh face;
+		TriMesh face;
 		gen_plane(&face, xsub, zsub);
 		mat.translate(Vector3(0, ysz, 0));
 		mat.scale(Vector3(xsz, 1, zsz));
@@ -216,7 +216,7 @@ bool henge::gen_box(trimesh *mesh, float xsz, float ysz, float zsz, int xsub, in
 	// bottom
 	{
 		Matrix4x4 mat;
-		trimesh face;
+		TriMesh face;
 		gen_plane(&face, xsub, zsub);
 		mat.rotate(Vector3(PI, 0, 0));
 		mat.translate(Vector3(0, ysz, 0));
@@ -272,7 +272,7 @@ static int icosa_idx[] = {
 	P34, P24, P22
 };
 
-bool henge::gen_icosa(trimesh *mesh, tex_coord_gen tcgen)
+bool henge::gen_icosa(TriMesh *mesh, TexCoordGen tcgen)
 {
 	int num_idx = sizeof icosa_idx / sizeof *icosa_idx;
 	int num_tri = num_idx / 3;
@@ -308,7 +308,7 @@ bool henge::gen_icosa(trimesh *mesh, tex_coord_gen tcgen)
 	return true;
 }
 
-bool henge::gen_geosphere(trimesh *mesh, float rad, int subdiv, bool hemi, tex_coord_gen tcgen)
+bool henge::gen_geosphere(TriMesh *mesh, float rad, int subdiv, bool hemi, TexCoordGen tcgen)
 {
 	int num_tri = (sizeof icosa_idx / sizeof *icosa_idx) / 3;
 
@@ -360,7 +360,7 @@ static void geosphere(std::vector<Vector3> *verts, const Vector3 &v1, const Vect
 	geosphere(verts, v12, v23, v31, iter - 1);
 }
 
-bool gen_dodeca(trimesh *mesh, tex_coord_gen tcgen)
+bool gen_dodeca(TriMesh *mesh, TexCoordGen tcgen)
 {
 	return false;
 }
@@ -395,9 +395,9 @@ static Vector3 vertex_plane(float u, float v, float dist)
  * an axis (surface of revolution), by just supplying the correct vertex(u, v, dist)
  * function (see above). So it's the common base for both gen_revol and gen_height.
  */
-static bool generic_heightfield(trimesh *mesh, int usub, int vsub,
-		float umax, float vmax,	gen_sample_func dist_func, void *dist_func_cls,
-		Vector3 (*vertex)(float, float, float), tex_coord_gen tcgen)
+static bool generic_heightfield(TriMesh *mesh, int usub, int vsub,
+		float umax, float vmax,	GenSampleFunc dist_func, void *dist_func_cls,
+		Vector3 (*vertex)(float, float, float), TexCoordGen tcgen)
 {
 	if(!mesh || !dist_func) {
 		return false;

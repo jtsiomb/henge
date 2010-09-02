@@ -4,7 +4,6 @@
 #include "cfgfile.h"
 #include "errlog.h"
 #include "material.h"
-#include "port.h"
 
 
 using namespace std;
@@ -22,8 +21,8 @@ static int max_free_list_size = 500000;
 static int max_active_particles = -1;
 
 // prototypes of the particle allocator (memory pool)
-static particle *new_particle();
-static void delete_particle(particle *p);
+static Particle *new_particle();
+static void delete_particle(Particle *p);
 
 static float global_time;
 
@@ -36,43 +35,43 @@ static float global_time;
 static bool use_psprites = true;
 static bool volatile_particles = false;
 
-void henge::set_psys_global_time(unsigned int msec) 
+void henge::set_psys_global_time(unsigned int msec)
 {
 	global_time = (float)msec / 1000.0;
 }
 
 
-fuzzy_val::fuzzy_val(float num, float range) 
+FuzzyVal::FuzzyVal(float num, float range)
 {
 	this->num = num;
 	this->range = range;
 }
 
-float fuzzy_val::operator()() const
+float FuzzyVal::operator()() const
 {
 	return range == 0.0 ? num : frand(range) + num - range / 2.0;
 }
 
 
-fuzzy_vec3::fuzzy_vec3(const fuzzy_val &x, const fuzzy_val &y, const fuzzy_val &z) 
+FuzzyVec3::FuzzyVec3(const FuzzyVal &x, const FuzzyVal &y, const FuzzyVal &z)
 {
 	this->x = x;
 	this->y = y;
 	this->z = z;
 }
 
-Vector3 fuzzy_vec3::operator()() const 
+Vector3 FuzzyVec3::operator()() const
 {
 	return Vector3(x(), y(), z());
 }
 
 
-particle::particle() 
+Particle::Particle()
 {
 	reset();
 }
 
-particle::particle(const Vector3 &pos, const Vector3 &vel, float friction, float lifespan) 
+Particle::Particle(const Vector3 &pos, const Vector3 &vel, float friction, float lifespan)
 {
 	set_position(pos);
 	velocity = vel;
@@ -81,21 +80,21 @@ particle::particle(const Vector3 &pos, const Vector3 &vel, float friction, float
 	birth_time = global_time;
 }
 
-particle::~particle() {}
+Particle::~Particle() {}
 
-void particle::reset()
+void Particle::reset()
 {
 	friction = 1.0;
 	lifespan = 0;
 	birth_time = 0;
 }
 
-bool particle::alive() const
+bool Particle::alive() const
 {
 	return global_time - birth_time < lifespan;
 }
 
-void particle::update(const Vector3 &ext_force) 
+void Particle::update(const Vector3 &ext_force)
 {
 	float time = global_time - birth_time;
 	if(time > lifespan) return;
@@ -104,16 +103,16 @@ void particle::update(const Vector3 &ext_force)
 	translate(velocity);	// update position
 }
 
-billboard_particle::~billboard_particle() {}
+BillboardParticle::~BillboardParticle() {}
 
-void billboard_particle::update(const Vector3 &ext_force) 
+void BillboardParticle::update(const Vector3 &ext_force)
 {
-	particle::update(ext_force);
-	
+	Particle::update(ext_force);
+
 	float time = global_time - birth_time;
 	if(time > lifespan) return;
 	float t = time / lifespan;
-	
+
 	col = lerp(start_color, end_color, t);
 
 	size = size_start + (size_end - size_start) * t;
@@ -125,7 +124,7 @@ void billboard_particle::update(const Vector3 &ext_force)
  * if we use point sprites, and the particles are not rotating, then the
  * calling function has taken care to call glBegin() before calling this.
  */
-void billboard_particle::draw() const 
+void BillboardParticle::draw() const
 {
 	Matrix4x4 tex_rot;
 	if(volatile_particles) {
@@ -139,11 +138,11 @@ void billboard_particle::draw() const
 	}
 
 	Vector3 pos = get_position();
-	
+
 	if(use_psprites) {
 		if(volatile_particles) {
 			glPointSize(size);
-			
+
 			glBegin(GL_POINTS);
 			glColor4f(col.x, col.y, col.z, col.w);
 			glVertex3f(pos.x, pos.y, pos.z);
@@ -163,7 +162,7 @@ void billboard_particle::draw() const
 }
 
 
-particle_system::particle_system(const char *fname) 
+ParticleSystem::ParticleSystem(const char *fname)
 {
 	timeslice = 1.0f / 50.0f;		// that's the default timeslice
 	num_particles = 0;
@@ -189,78 +188,78 @@ particle_system::particle_system(const char *fname)
 	part_alloc = new_particle;
 }
 
-particle_system::~particle_system() 
+ParticleSystem::~ParticleSystem()
 {
 	reset();
 }
 
-void particle_system::set_particle_alloc(particle *(*func)())
+void ParticleSystem::set_particle_alloc(Particle *(*func)())
 {
 	part_alloc = func;
 }
 
-void particle_system::reset() 
+void ParticleSystem::reset()
 {
 	prev_update = -1.0;
-	std::list<particle*>::iterator iter = particles.begin();
+	std::list<Particle*>::iterator iter = particles.begin();
 	while(iter != particles.end()) {
 		delete *iter++;
 	}
 	particles.clear();
 }
 
-void particle_system::set_update_interval(float timeslice) 
+void ParticleSystem::set_update_interval(float timeslice)
 {
 	this->timeslice = timeslice;
 }
 
-void particle_system::set_active(bool active)
+void ParticleSystem::set_active(bool active)
 {
 	this->active = active;
 }
 
-bool particle_system::is_active() const
+bool ParticleSystem::is_active() const
 {
 	return active;
 }
 
 
-void particle_system::set_visible(bool visible)
+void ParticleSystem::set_visible(bool visible)
 {
 	this->visible = visible;
 }
 
-bool particle_system::is_visible() const
+bool ParticleSystem::is_visible() const
 {
 	return visible;
 }
 
-void particle_system::set_params(const particle_sys_params &psys_params) 
+void ParticleSystem::set_params(const ParticleSysParams &psys_params)
 {
 	this->psys_params = psys_params;
 }
 
-particle_sys_params *particle_system::get_params() 
+ParticleSysParams *ParticleSystem::get_params()
 {
 	return &psys_params;
 }
 
-void particle_system::set_particle_type(particle_type ptype) 
+void ParticleSystem::set_particle_type(ParticleType ptype)
 {
 	this->ptype = ptype;
 }
 
-void particle_system::update(const Vector3 &ext_force) 
+void ParticleSystem::update(const Vector3 &ext_force)
 {
 	if(!ready) {// || (!active && num_particles == 0)) {
 		return;
 	}
-	
+
 	curr_time = global_time;
 	int updates_missed = (int)round((global_time - prev_update) / timeslice);
 
 	if(!updates_missed) return;	// less than a timeslice has elapsed, nothing to do
-	
+
 	Vector3 pos;
 	curr_pos = pos.transformed(get_xform_matrix((unsigned int)(global_time * 1000.0)));
 	//curr_pos = get_position((unsigned int)(global_time * 1000.0));
@@ -292,23 +291,23 @@ void particle_system::update(const Vector3 &ext_force)
 			dp = (curr_pos - prev_pos) / (float)spawn_count;
 			pos = prev_pos;
 		}
-		
+
 		float dt = (global_time - prev_update) / (float)spawn_count;
 		float t = prev_update;
-		
+
 		for(int i=0; i<spawn_count; i++) {
-			if(psys_params.max_active_particles >= 0 && 
+			if(psys_params.max_active_particles >= 0 &&
 					num_particles >= psys_params.max_active_particles) {
 				break;
 			}
-			
-			particle *p;
+
+			Particle *p;
 			switch(ptype) {
 			case PTYPE_BILLBOARD:
 				if((p = part_alloc())) {
 					curr_rot = fmod(psys_params.glob_rot * t, 2.0f * (float)M_PI);
-					
-					billboard_particle *bbp = (billboard_particle*)p;
+
+					BillboardParticle *bbp = (BillboardParticle*)p;
 					bbp->tex = psys_params.billboard_tex;
 					bbp->start_color = psys_params.start_color;
 					bbp->end_color = psys_params.end_color;
@@ -325,7 +324,7 @@ void particle_system::update(const Vector3 &ext_force)
 			if(!p) continue;
 
 			num_particles++;
-			
+
 			Vector3 offset = psys_params.spawn_offset();
 			/*
 			if(psys_params.spawn_offset_curve) {
@@ -345,7 +344,7 @@ void particle_system::update(const Vector3 &ext_force)
 			} else {
 				p->size_end = psys_params.psize_end;
 			}
-			
+
 			// XXX: correct this next rotation to span the interval
 			p->velocity = psys_params.shoot_dir().transformed(rot);
 			p->friction = psys_params.friction;
@@ -358,12 +357,12 @@ void particle_system::update(const Vector3 &ext_force)
 			t += dt;
 		}
 	}
-		
+
 
 	// update particles
-	std::list<particle*>::iterator iter = particles.begin();
+	std::list<Particle*>::iterator iter = particles.begin();
 	while(iter != particles.end()) {
-		particle *p = *iter;
+		Particle *p = *iter;
 		int i = 0;
 		while(p->alive() && i++ < updates_missed) {
 			p->update(psys_params.gravity);
@@ -382,7 +381,7 @@ void particle_system::update(const Vector3 &ext_force)
 	prev_pos = curr_pos;
 }
 
-void particle_system::draw() const 
+void ParticleSystem::draw() const
 {
 	if(!ready || !visible) return;
 
@@ -391,10 +390,10 @@ void particle_system::draw() const
 
 	// particles are volatile if they rotate OR they fluctuate in size
 	volatile_particles = psys_params.rot > SMALL_NUMBER || psys_params.psize.range > SMALL_NUMBER;
-	
-	std::list<particle*>::const_iterator iter = particles.begin();
+
+	std::list<Particle*>::const_iterator iter = particles.begin();
 	if(iter != particles.end()) {
-		
+
 		if(ptype == PTYPE_BILLBOARD) {
 			// ------ setup render state ------
 			glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT |
@@ -439,7 +438,7 @@ void particle_system::draw() const
 		while(iter != particles.end()) {
 			(*iter++)->draw();
 		}
-	
+
 		if(ptype == PTYPE_BILLBOARD) {
 			// ------ restore render states -------
 			if(use_psprites) {
@@ -479,7 +478,7 @@ void particle_system::draw() const
 		draw_point(curr_pos, psys_params.halo_color, sz);
 
 		glPopAttrib();
-	
+
 		glMatrixMode(GL_TEXTURE);
 		glPopMatrix();
 	}
@@ -495,7 +494,7 @@ void henge::set_psys_max_particles(int max_part)
 	max_active_particles = max_part;
 }
 
-void henge::draw_point(const Vector3 &p, const color &col, float size)
+void henge::draw_point(const Vector3 &p, const Color &col, float size)
 {
 	float m[16];
 
@@ -528,7 +527,6 @@ void henge::draw_point(const Vector3 &p, const color &col, float size)
 	glEnd();
 
 	glPopAttrib();
-
 	glPopMatrix();
 }
 
@@ -537,7 +535,7 @@ void henge::draw_point(const Vector3 &p, const color &col, float size)
 static unsigned int get_blend_factor(const char *str);
 
 
-particle_sys_params::particle_sys_params() 
+ParticleSysParams::ParticleSysParams()
 {
 	psize_end = -1.0;
 	friction = 0.95f;
@@ -549,16 +547,16 @@ particle_sys_params::particle_sys_params()
 	big_particles = false;
 	max_active_particles = -1;
 	//spawn_offset_curve = 0;
-	//spawn_offset_curve_area = fuzzy_val(0.5, 1.0);
-	
-	start_color = end_color = halo_color = color(1, 1, 1, 1);
+	//spawn_offset_curve_area = FuzzyVal(0.5, 1.0);
+
+	start_color = end_color = halo_color = Color(1, 1, 1, 1);
 
 	src_blend = GL_SRC_ALPHA;
 	dest_blend = GL_ONE;
 }
 
 
-bool particle_sys_params::load(const char *fname) 
+bool ParticleSysParams::load(const char *fname)
 {
 	float val;
 	Vector4 vec;
@@ -566,8 +564,8 @@ bool particle_sys_params::load(const char *fname)
 
 	Vector3 tmp_shoot, tmp_shoot_range;
 	Vector3 tmp_spawn_off, tmp_spawn_off_range;
-	
-	config_file cfg;
+
+	ConfigFile cfg;
 	if(!(cfg.read(fname))) {
 		return false;
 	}
@@ -669,12 +667,12 @@ bool particle_sys_params::load(const char *fname)
 	}
 
 
-	shoot_dir = fuzzy_vec3(fuzzy_val(tmp_shoot.x, tmp_shoot_range.x),
-			fuzzy_val(tmp_shoot.y, tmp_shoot_range.y),
-			fuzzy_val(tmp_shoot.z, tmp_shoot_range.z));
-	spawn_offset = fuzzy_vec3(fuzzy_val(tmp_spawn_off.x, tmp_spawn_off_range.x),
-			fuzzy_val(tmp_spawn_off.y, tmp_spawn_off_range.y),
-			fuzzy_val(tmp_spawn_off.z, tmp_spawn_off_range.z));
+	shoot_dir = FuzzyVec3(FuzzyVal(tmp_shoot.x, tmp_shoot_range.x),
+			FuzzyVal(tmp_shoot.y, tmp_shoot_range.y),
+			FuzzyVal(tmp_shoot.z, tmp_shoot_range.z));
+	spawn_offset = FuzzyVec3(FuzzyVal(tmp_spawn_off.x, tmp_spawn_off_range.x),
+			FuzzyVal(tmp_spawn_off.y, tmp_spawn_off_range.y),
+			FuzzyVal(tmp_spawn_off.z, tmp_spawn_off_range.z));
 
 	return true;
 }
@@ -705,19 +703,19 @@ static unsigned int get_blend_factor(const char *str)
 }
 
 // ---- particle memory allocator ----
-static std::list<particle*> free_list;
+static std::list<Particle*> free_list;
 static size_t free_list_size;
 static int active_particles;
 
-static particle *new_particle()
+static Particle *new_particle()
 {
 	if(max_active_particles >= 0 && active_particles >= max_active_particles) {
 		return 0;
 	}
 
-	particle *p;
+	Particle *p;
 	if(free_list.empty()) {
-		p = new billboard_particle;
+		p = new BillboardParticle;
 	} else {
 		p = *free_list.begin();
 		free_list.erase(free_list.begin());
@@ -729,7 +727,7 @@ static particle *new_particle()
 	return p;
 }
 
-static void delete_particle(particle *p)
+static void delete_particle(Particle *p)
 {
 	if(free_list_size < MAX_FREE_LIST_SIZE) {
 		free_list.push_front(p);

@@ -13,15 +13,15 @@
 
 using namespace henge;
 
-static int load_objects(scene *scn, Lib3dsFile *file);
-static int load_lights(scene *scn, Lib3dsFile *file);
-static int load_cameras(scene *scn, Lib3dsFile *file);
+static int load_objects(Scene *scn, Lib3dsFile *file);
+static int load_lights(Scene *scn, Lib3dsFile *file);
+static int load_cameras(Scene *scn, Lib3dsFile *file);
 
-static void load_material(material *mat, Lib3dsMaterial *mat3ds);
-static bool load_mesh(trimesh *mesh, Lib3dsMesh *mesh3ds);
+static void load_material(Material *mat, Lib3dsMaterial *mat3ds);
+static bool load_mesh(TriMesh *mesh, Lib3dsMesh *mesh3ds);
 
 static Vector3 mkvector(float *vec);
-static color mkcolor(float *vec);
+static Color mkcolor(float *vec);
 
 static Lib3dsBool ioerror(void *fp);
 static long ioseek(void *fp, long offset, Lib3dsIoSeek whence);
@@ -30,7 +30,7 @@ static size_t ioread(void *fp, void *buffer, size_t size);
 static size_t iowrite(void *fp, const void *buffer, size_t size);
 
 
-bool scene::load_3ds(FILE *fp)
+bool Scene::load_3ds(FILE *fp)
 {
 	Lib3dsFile *file;
 	Lib3dsIo *io;
@@ -61,7 +61,7 @@ bool scene::load_3ds(FILE *fp)
 	return true;
 }
 
-static int load_objects(scene *scn, Lib3dsFile *file)
+static int load_objects(Scene *scn, Lib3dsFile *file)
 {
 	Lib3dsNode *node;
 	Lib3dsMesh *m = file->meshes;
@@ -77,7 +77,7 @@ static int load_objects(scene *scn, Lib3dsFile *file)
 			warning("mesh %s does not have a node!\n", m->name);
 		}
 
-		robject *obj = new robject;
+		RObject *obj = new RObject;
 		obj->set_name(m->name);
 
 		// load the material
@@ -85,20 +85,20 @@ static int load_objects(scene *scn, Lib3dsFile *file)
 			Lib3dsMaterial *mat3ds = lib3ds_file_material_by_name(file, m->faceL[0].material);
 			load_material(obj->get_material_ptr(), mat3ds);
 		}
-		
+
 		// load the geometry
 		load_mesh(obj->get_mesh(), m);
 
-		printf("adding object: %s\n", m->name);
+		info("adding object: %s\n", m->name);
 		scn->add_object(obj);
 		num_obj++;
-		
+
 		m = m->next;	// next mesh...
 	}
 	return num_obj;
 }
 
-static void load_material(material *mat, Lib3dsMaterial *mat3ds)
+static void load_material(Material *mat, Lib3dsMaterial *mat3ds)
 {
 	mat->set_color(mkcolor(mat3ds->ambient), MATTR_AMBIENT);
 	mat->set_color(mkcolor(mat3ds->diffuse), MATTR_DIFFUSE);
@@ -117,8 +117,8 @@ static void load_material(material *mat, Lib3dsMaterial *mat3ds)
 		Vector3 offs = Vector3(mat3ds->texture1_map.offset[0], mat3ds->texture1_map.offset[1], 0.0);
 		Vector3 scale = Vector3(mat3ds->texture1_map.scale[0], mat3ds->texture1_map.scale[1], 1.0);
 		float rot = mat3ds->texture1_map.rotation;
-		
-		xform_node *xform = mat->texture_xform();
+
+		XFormNode *xform = mat->texture_xform();
 		xform->set_position(offs);
 		xform->set_rotation(Vector3(0, 0, rot));
 		xform->set_scaling(scale);
@@ -134,7 +134,7 @@ static void load_material(material *mat, Lib3dsMaterial *mat3ds)
 	}
 }
 
-static bool load_mesh(trimesh *mesh, Lib3dsMesh *mesh3ds)
+static bool load_mesh(TriMesh *mesh, Lib3dsMesh *mesh3ds)
 {
 	Vector3 *verts, *norms;
 	Vector2 *tc = 0;
@@ -173,24 +173,24 @@ static bool load_mesh(trimesh *mesh, Lib3dsMesh *mesh3ds)
 	return true;
 }
 
-static int load_lights(scene *scn, Lib3dsFile *file)
+static int load_lights(Scene *scn, Lib3dsFile *file)
 {
 	Lib3dsLight *lt = file->lights;
 
 	int num_lt = 0;
 	while(lt) {
-		light *light;
+		Light *light;
 		if(lt->spot_light) {
-			spotlight *spot = new spotlight;
+			SpotLight *spot = new SpotLight;
 			light = spot;
 
 			spot->set_direction(mkvector(lt->spot));
 			spot->set_cone(DEG_TO_RAD(lt->inner_range), DEG_TO_RAD(lt->outer_range));
 		} else {
-			light = new henge::light;
+			light = new Light;
 		}
 
-		color lcol = mkcolor(lt->color) * lt->multiplier;
+		Color lcol = mkcolor(lt->color) * lt->multiplier;
 
 		light->set_position(lcol);
 		light->set_specular(lcol);
@@ -209,13 +209,13 @@ static int load_lights(scene *scn, Lib3dsFile *file)
 	return num_lt;
 }
 
-static int load_cameras(scene *scn, Lib3dsFile *file)
+static int load_cameras(Scene *scn, Lib3dsFile *file)
 {
 	Lib3dsCamera *c = file->cameras;
 
 	int num_cam = 0;
 	while(c) {
-		target_camera *cam = new target_camera;
+		TargetCamera *cam = new TargetCamera;
 
 		cam->set_position(mkvector(c->position));
 		cam->set_target(mkvector(c->target));
@@ -235,9 +235,9 @@ static Vector3 mkvector(float *vec)
 	return Vector3(vec[0], vec[2], vec[1]);
 }
 
-static color mkcolor(float *vec)
+static Color mkcolor(float *vec)
 {
-	return color(vec[0], vec[1], vec[2]);
+	return Color(vec[0], vec[1], vec[2]);
 }
 
 

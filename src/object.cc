@@ -4,72 +4,72 @@
 
 using namespace henge;
 
-robject::robject()
+RObject::RObject()
 {
 	custom_render = 0;
 }
 
-robject::~robject()
+RObject::~RObject()
 {
 }
 
-robject *robject::clone() const
+RObject *RObject::clone() const
 {
-	robject *tmp = new robject(*this);
+	RObject *tmp = new RObject(*this);
 	return tmp;
 }
 
-void robject::apply_xform(int time)
+void RObject::apply_xform(int time)
 {
 	mesh.transform(get_xform_matrix(time));
 }
 
-void robject::set_material(const material &mat)
+void RObject::set_material(const Material &mat)
 {
 	this->mat = mat;
 }
 
-material *robject::get_material_ptr()
+Material *RObject::get_material_ptr()
 {
 	return &mat;
 }
 
-const material &robject::get_material() const
+const Material &RObject::get_material() const
 {
 	return mat;
 }
 
-trimesh *robject::get_mesh()
+TriMesh *RObject::get_mesh()
 {
 	return &mesh;
 }
 
-const trimesh *robject::get_mesh() const
+const TriMesh *RObject::get_mesh() const
 {
 	return &mesh;
 }
 
-aabox *robject::get_aabox() const
+AABox *RObject::get_aabox() const
 {
 	bbox.min = mesh.get_aabb_min();
 	bbox.max = mesh.get_aabb_max();
 	return &bbox;
 }
 
-bsphere *robject::get_bsphere() const
+BSphere *RObject::get_bsphere() const
 {
 	bsph.center = mesh.get_centroid();
 	bsph.radius = mesh.get_bsph_radius();
 	return &bsph;
 }
 
-void robject::set_render_func(void (*func)(const robject*, unsigned int, void*), void *cls)
+void RObject::set_render_func(void (*func)(const RObject*, unsigned int, void*), void *cls)
 {
 	custom_render = func;
 	cust_rend_cls = cls;
 }
 
-void robject::render(unsigned int msec) const
+void RObject::render(unsigned int msec) const
 {
 	if(custom_render) {
 		custom_render(this, msec, cust_rend_cls);
@@ -78,7 +78,7 @@ void robject::render(unsigned int msec) const
 
 	glMatrixMode(GL_TEXTURE);
 	glPushMatrix();
-	
+
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	mult_matrix(get_xform_matrix(msec));
@@ -113,19 +113,19 @@ void robject::render(unsigned int msec) const
 	glPopAttrib()
 
 
-void robject::draw_vertices(float size, unsigned int msec) const
+void RObject::draw_vertices(float size, unsigned int msec) const
 {
-	DRAW_ELEM(vertices, color(1, 0, 0, 1));
+	DRAW_ELEM(vertices, Color(1, 0, 0, 1));
 }
 
-void robject::draw_normals(float size, unsigned int msec) const
+void RObject::draw_normals(float size, unsigned int msec) const
 {
-	DRAW_ELEM(normals, color(0.2, 1, 0.4, 1));
+	DRAW_ELEM(normals, Color(0.2, 1, 0.4, 1));
 }
 
-void robject::draw_tangents(float size, unsigned int msec) const
+void RObject::draw_tangents(float size, unsigned int msec) const
 {
-	DRAW_ELEM(tangents, color(0.2f, 0.4f, 1, 1));
+	DRAW_ELEM(tangents, Color(0.2f, 0.4f, 1, 1));
 }
 
 namespace henge {
@@ -133,7 +133,7 @@ namespace henge {
 }
 
 // XXX not really efficient atm.
-bool robject::operator <(const robject &rhs) const
+bool RObject::operator <(const RObject &rhs) const
 {
 	Matrix4x4 lhs_mat, rhs_mat;
 

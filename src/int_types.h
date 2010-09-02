@@ -15,4 +15,4 @@ typedef unsigned __int64 uint64_t;
 #endif
 
 
-#endif	// HENGE_INT_TYPES_H_
+#endif	/* HENGE_INT_TYPES_H_ */

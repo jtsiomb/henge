@@ -55,33 +55,16 @@ if [ "$opt" = yes ]; then
 	echo 'opt = -O3' >>Makefile
 fi
 
-sys=`uname -s`
-if [ "$sys" = Darwin ]; then
-	echo 'shared = -dynamiclib' >>Makefile
-	echo 'so = dylib' >>Makefile
-	gl_libs='-framework OpenGL'
-else
-	echo 'shared = -shared' >>Makefile
-	echo 'so = so' >>Makefile
-	echo 'pic = -fPIC' >>Makefile
-
-	if [ "$sys" != mingw ]; then
-		gl_libs='-lGL -lGLU'
-	else
-		gl_libs='-lopengl32 -lglu32'
-	fi
-fi
-echo "gl_libs = $gl_libs" >>Makefile
 echo >>Makefile
 cat Makefile.in >>Makefile
 
 # create pkg-config file
-echo '# this pkg-config file is generated automatically, do not edit' >henge.pc
-echo >>henge.pc
-echo "prefix=$prefix" >>henge.pc
-echo "ver=$version" >>henge.pc
-echo "gl_libs=$gl_libs" >>henge.pc
-echo >>henge.pc
-cat henge.pc.in >>henge.pc
+echo '# this pkg-config file is generated automatically, do not edit' >henge2.pc
+echo >>henge2.pc
+echo "prefix=$prefix" >>henge2.pc
+echo "ver=$version" >>henge2.pc
+echo "gl_libs=$gl_libs" >>henge2.pc
+echo >>henge2.pc
+cat henge2.pc.in >>henge2.pc
 
 echo 'configuration completed, type make (or gmake) to build.'

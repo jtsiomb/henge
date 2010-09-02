@@ -9,31 +9,31 @@ using namespace std;
 #define KEY_MAX		1024
 #define KEY(t)		(int)((t) * (float)KEY_MAX)
 
-static bool parse_sample(const char *start, float *t, color *c);
+static bool parse_sample(const char *start, float *t, Color *c);
 
-bool grad_sample::operator <(const grad_sample &rhs) const
+bool GradSample::operator <(const GradSample &rhs) const
 {
 	return key < rhs.key;
 }
 
-color_gradient::color_gradient()
+ColorGradient::ColorGradient()
 {
 	samples_sorted = true;
 }
 
-color_gradient::color_gradient(const color_gradient &grad)
+ColorGradient::ColorGradient(const ColorGradient &grad)
 {
 	samples = grad.samples;
 	samples_sorted = grad.samples_sorted;
 	// don't copy the maps, let them be recreated when/if needed
 }
 
-color_gradient::~color_gradient()
+ColorGradient::~ColorGradient()
 {
 	clear_maps();
 }
 
-void color_gradient::clear_maps()
+void ColorGradient::clear_maps()
 {
 	for(size_t i=0; i<maps.size(); i++) {
 		delete maps[i];
@@ -42,7 +42,7 @@ void color_gradient::clear_maps()
 	rad_cache.clear();
 }
 
-color_gradient &color_gradient::operator =(const color_gradient &rhs)
+ColorGradient &ColorGradient::operator =(const ColorGradient &rhs)
 {
 	samples = rhs.samples;
 	samples_sorted = rhs.samples_sorted;
@@ -50,20 +50,20 @@ color_gradient &color_gradient::operator =(const color_gradient &rhs)
 	return *this;
 }
 
-void color_gradient::clear()
+void ColorGradient::clear()
 {
 	samples.clear();
 	clear_maps();
 }
 
-bool color_gradient::set_color(float t, const color &c)
+bool ColorGradient::set_color(float t, const Color &c)
 {
 	int key = KEY(t);
 
 	if(key < 0) key = 0;
 	if(key > KEY_MAX) key = KEY_MAX;
 
-	grad_sample gs = {key, c};
+	GradSample gs = {key, c};
 	try {
 		samples.push_back(gs);
 	}
@@ -76,9 +76,9 @@ bool color_gradient::set_color(float t, const color &c)
 	return true;
 }
 
-const color color_gradient::get_color(float t) const
+const Color ColorGradient::get_color(float t) const
 {
-	static const color dummy(1.0f, 1.0f, 1.0f, 1.0f);
+	static const Color dummy(1.0f, 1.0f, 1.0f, 1.0f);
 
 	if(samples.empty()) {
 		return dummy;
@@ -93,7 +93,7 @@ const color color_gradient::get_color(float t) const
 	}
 
 	int key = KEY(t);
-	const grad_sample *start = 0, *end = 0;
+	const GradSample *start = 0, *end = 0;
 
 	for(size_t i=0; i<samples.size(); i++) {
 		if(key == samples[i].key) {
@@ -117,7 +117,7 @@ const color color_gradient::get_color(float t) const
 	return lerp(start->c, end->c, t);
 }
 
-bool color_gradient::load(const char *fname)
+bool ColorGradient::load(const char *fname)
 {
 	ifstream file(fname);
 	if(!file.is_open()) {
@@ -144,7 +144,7 @@ bool color_gradient::load(const char *fname)
 		}
 
 		float t;
-		color c;
+		Color c;
 		if(!parse_sample(line, &t, &c)) {
 			error("failed to load color gradient: %s: invalid or corrupted file\n", fname);
 			return false;
@@ -154,7 +154,7 @@ bool color_gradient::load(const char *fname)
 	return true;
 }
 
-bool color_gradient::save(const char *fname) const
+bool ColorGradient::save(const char *fname) const
 {
 	ofstream file(fname);
 	if(!file.is_open()) {
@@ -171,7 +171,7 @@ bool color_gradient::save(const char *fname) const
 	return true;
 }
 
-texture *color_gradient::ramp_map(int xsz, int ysz) const
+Texture *ColorGradient::ramp_map(int xsz, int ysz) const
 {
 	for(size_t i=0; i<ramp_cache.size(); i++) {
 		if(ramp_cache[i]->get_width() == xsz && ramp_cache[i]->get_height() == ysz) {
@@ -179,13 +179,13 @@ texture *color_gradient::ramp_map(int xsz, int ysz) const
 		}
 	}
 
-	pixmap img;
+	Pixmap img;
 	if(!img.set_pixels(xsz, ysz)) {
 		return 0;
 	}
 
 	for(int x=0; x<xsz; x++) {
-		const color c = get_color((float)x / (float)xsz);
+		const Color c = get_color((float)x / (float)xsz);
 		uint32_t pcol = pack_color(c);
 
 		for(int y=0; y<ysz; y++) {
@@ -193,7 +193,7 @@ texture *color_gradient::ramp_map(int xsz, int ysz) const
 		}
 	}
 
-	texture_2d *tex = new texture_2d;
+	Texture2D *tex = new Texture2D;
 	tex->set_image(img);
 
 	maps.push_back(tex);
@@ -201,7 +201,7 @@ texture *color_gradient::ramp_map(int xsz, int ysz) const
 	return tex;
 }
 
-texture *color_gradient::radial_map(int xsz, int ysz) const
+Texture *ColorGradient::radial_map(int xsz, int ysz) const
 {
 	for(size_t i=0; i<rad_cache.size(); i++) {
 		if(rad_cache[i]->get_width() == xsz && rad_cache[i]->get_height() == ysz) {
@@ -209,7 +209,7 @@ texture *color_gradient::radial_map(int xsz, int ysz) const
 		}
 	}
 
-	pixmap img;
+	Pixmap img;
 	if(!img.set_pixels(xsz, ysz)) {
 		return 0;
 	}
@@ -225,7 +225,7 @@ texture *color_gradient::radial_map(int xsz, int ysz) const
 		}
 	}
 
-	texture_2d *tex = new texture_2d;
+	Texture2D *tex = new Texture2D;
 	tex->set_image(img);
 
 	maps.push_back(tex);
@@ -233,7 +233,7 @@ texture *color_gradient::radial_map(int xsz, int ysz) const
 	return tex;
 }
 
-static bool parse_sample(const char *start, float *t, color *c)
+static bool parse_sample(const char *start, float *t, Color *c)
 {
 	float sdata[4];
 

@@ -7,7 +7,7 @@
 
 namespace henge {
 
-class shader;
+class Shader;
 
 void init_uniform_cache();
 
@@ -18,7 +18,7 @@ void cache_uniform(const char *name, const Matrix4x4 &mat);
 
 bool is_cached_uniform(const char *name);
 
-bool bind_cached_uniform(const char *name, const shader *sdr);
+bool bind_cached_uniform(const char *name, const Shader *sdr);
 
 }
 

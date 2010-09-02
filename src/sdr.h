@@ -9,23 +9,23 @@
 
 namespace henge {
 
-class shader;
+class Shader;
 
 bool init_sdr();
 void destroy_sdr();
 
-bool add_shader(const char *vname, const char *pname, shader *sdr);
-shader *get_shader(const char *vname, const char *pname);
+bool add_shader(const char *vname, const char *pname, Shader *sdr);
+Shader *get_shader(const char *vname, const char *pname);
 
 // NULL pointer means: disable shaders
-void set_shader(const shader *sdr);
+void set_shader(const Shader *sdr);
 
-enum sdrtype {
+enum SdrType {
 	SDR_VERTEX	= GL_VERTEX_SHADER_ARB,
 	SDR_PIXEL	= GL_FRAGMENT_SHADER_ARB
 };
 
-class shader {
+class Shader {
 private:
 	unsigned int prog;
 	unsigned int vsdr, psdr;
@@ -37,11 +37,11 @@ private:
 	void find_uniforms();
 
 public:
-	shader();
-	~shader();
+	Shader();
+	~Shader();
 
-	bool load_shader(const char *fname, sdrtype type);
-	bool compile_shader(const char *src, sdrtype type, const char *fname = 0);
+	bool load_shader(const char *fname, SdrType type);
+	bool compile_shader(const char *src, SdrType type, const char *fname = 0);
 	bool link();
 
 	bool set_uniform(const char *name, int val) const;

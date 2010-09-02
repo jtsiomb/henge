@@ -2,25 +2,25 @@
 
 using namespace henge;
 
-deferred_renderer::deferred_renderer()
+DeferredRenderer::DeferredRenderer()
 {
 	init();
 }
 
-deferred_renderer::~deferred_renderer()
+DeferredRenderer::~DeferredRenderer()
 {
 	shutdown();
 }
 
-bool deferred_renderer::init()
+bool DeferredRenderer::init()
 {
 	return false;
 }
 
-void deferred_renderer::shutdown()
+void DeferredRenderer::shutdown()
 {
 }
 
-void deferred_renderer::render(const scene *scn, unsigned int msec) const
+void DeferredRenderer::render(const Scene *scn, unsigned int msec) const
 {
 }

@@ -2,31 +2,31 @@
 
 using namespace henge;
 
-object::object()
+Object::Object()
 {
 	cache_valid = false;
 }
 
-object::~object() {}
+Object::~Object() {}
 
-void object::set_xform(const Matrix4x4 &mat)
+void Object::set_xform(const Matrix4x4 &mat)
 {
 	xform = mat;
 	cache_valid = false;
 }
 
-const Matrix4x4 &object::get_xform() const
+const Matrix4x4 &Object::get_xform() const
 {
 	return xform;
 }
 
-void object::set_position(const Vector3 &vec)
+void Object::set_position(const Vector3 &vec)
 {
 	pos = vec;
 	cache_valid = false;
 }
 
-Vector3 object::get_position(bool transformed) const
+Vector3 Object::get_position(bool transformed) const
 {
 	if(transformed) {
 		cached_pos = pos.transformed(xform);
@@ -35,28 +35,28 @@ Vector3 object::get_position(bool transformed) const
 	return pos;
 }
 
-// --- sphere ---
+// --- Sphere ---
 
-sphere::sphere(const Vector3 &pos, float rad)
+Sphere::Sphere(const Vector3 &pos, float rad)
 {
 	this->pos = pos;
 	radius = rad;
 }
 
-sphere::~sphere() {}
+Sphere::~Sphere() {}
 
 
-void sphere::set_radius(float r)
+void Sphere::set_radius(float r)
 {
 	radius = r;
 }
 
-float sphere::get_radius() const
+float Sphere::get_radius() const
 {
 	return radius;
 }
 
-bool sphere::raytest(const Ray &ray, Vector3 *pt) const
+bool Sphere::raytest(const Ray &ray, Vector3 *pt) const
 {
 	Vector3 pos = get_position(true);	// get transformed position
 
@@ -67,7 +67,7 @@ bool sphere::raytest(const Ray &ray, Vector3 *pt) const
 	float c = SQ(pos.x) + SQ(pos.y) + SQ(pos.z) +
 				SQ(ray.origin.x) + SQ(ray.origin.y) + SQ(ray.origin.z) +
 				2.0 * (-pos.x * ray.origin.x - pos.y * ray.origin.y - pos.z * ray.origin.z) - SQ(radius);
-	
+
 	float d = SQ(b) - 4.0 * a * c;
 	if(d < 0.0) return false;
 
@@ -82,7 +82,7 @@ bool sphere::raytest(const Ray &ray, Vector3 *pt) const
 	if(pt) {
 		if(t1 < ERROR_MARGIN) t1 = t2;
 		if(t2 < ERROR_MARGIN) t2 = t1;
-		
+
 		float t = t1 < t2 ? t1 : t2;
 		*pt = ray.origin + ray.dir * t;
 	}
@@ -90,34 +90,34 @@ bool sphere::raytest(const Ray &ray, Vector3 *pt) const
 }
 
 
-// --- plane ---
+// --- Plane ---
 
-plane::plane(const Vector3 &pos, const Vector3 &norm)
+Plane::Plane(const Vector3 &pos, const Vector3 &norm)
 {
 	this->pos = pos;
 	this->norm = norm;
 }
 
-plane::plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
+Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 {
 	set_points(p1, p2, p3);
 }
 
-plane::~plane() {}
+Plane::~Plane() {}
 
 
-void plane::set_normal(const Vector3 &norm)
+void Plane::set_normal(const Vector3 &norm)
 {
 	this->norm = norm;
 }
 
-Vector3 plane::get_normal() const
+Vector3 Plane::get_normal() const
 {
 	return norm;
 }
 
 // define the plane by 3 points
-void plane::set_points(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
+void Plane::set_points(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 {
 	pos = p1;
 
@@ -128,7 +128,7 @@ void plane::set_points(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 }
 
 
-bool plane::raytest(const Ray &ray, Vector3 *pt) const
+bool Plane::raytest(const Ray &ray, Vector3 *pt) const
 {
 	if(fabs(dot_product(norm, ray.dir)) < ERROR_MARGIN) {
 		return false;

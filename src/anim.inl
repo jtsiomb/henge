@@ -1,45 +1,50 @@
 #define HENGE_ANIM_KEY_FLT_SCALE	65535.0f
 
+inline Quaternion catmull_rom_spline(const Quaternion &q1, const Quaternion &q2, const Quaternion &q3, const Quaternion &q4, float t)
+{
+	return slerp(q2, q3, t);
+}
+
 template <typename T>
-track_key<T>::track_key() : time(0) {}
+TrackKey<T>::TrackKey() : time(0) {}
 
 
 template <typename T>
-track_key<T>::track_key(const T &v, int t)
+TrackKey<T>::TrackKey(const T &v, int t)
 {
 	val = v;
 	time = t;
 }
 
 template <typename T>
-track_key<T>::track_key(const T &v, float t)
+TrackKey<T>::TrackKey(const T &v, float t)
 {
 	val = v;
 	time = (int)(HENGE_ANIM_KEY_FLT_SCALE * t);
 }
 
 template <typename T>
-bool track_key<T>::operator ==(const track_key &k) const
+bool TrackKey<T>::operator ==(const TrackKey &k) const
 {
 	return time == k.time;
 }
 
 template <typename T>
-bool track_key<T>::operator <(const track_key &k) const
+bool TrackKey<T>::operator <(const TrackKey &k) const
 {
 	return time < k.time;
 }
 
 
 template <typename T>
-track<T>::track()
+Track<T>::Track()
 {
 	interp = INTERP_LINEAR;
 	extrap = EXTRAP_CLAMP;
 }
 
 template <typename T>
-track_key<T> *track<T>::get_nearest_key(int time)
+TrackKey<T> *Track<T>::get_nearest_key(int time)
 {
 	size_t sz = keys.size();
 	if(!sz) return 0;
@@ -48,7 +53,7 @@ track_key<T> *track<T>::get_nearest_key(int time)
 
 // performs binary search to find the nearest keyframe to a specific time value
 template <typename T>
-track_key<T> *track<T>::get_nearest_key(int start, int end, int time)
+TrackKey<T> *Track<T>::get_nearest_key(int start, int end, int time)
 {
 	if(start == end) return &keys[start];
 	if(end - start == 1) {
@@ -65,9 +70,9 @@ track_key<T> *track<T>::get_nearest_key(int start, int end, int time)
  * containing the specified time value.
  */
 template <typename T>
-void track<T>::get_key_interval(int time, const track_key<T> **start, const track_key<T> **end) const
+void Track<T>::get_key_interval(int time, const TrackKey<T> **start, const TrackKey<T> **end) const
 {
-	const track_key<T> *nearest = ((track<T>*)this)->get_nearest_key(time);
+	const TrackKey<T> *nearest = ((Track<T>*)this)->get_nearest_key(time);
 	if(!nearest) {
 		*start = *end = 0;
 		return;
@@ -86,7 +91,7 @@ void track<T>::get_key_interval(int time, const track_key<T> **start, const trac
 }
 
 template <typename T>
-void track<T>::reset(const T &val)
+void Track<T>::reset(const T &val)
 {
 	keys.clear();
 	interp = INTERP_LINEAR;
@@ -95,34 +100,34 @@ void track<T>::reset(const T &val)
 }
 
 template <typename T>
-void track<T>::set_interpolator(interpolator interp)
+void Track<T>::set_interpolator(Interpolator interp)
 {
 	this->interp = interp;
 }
 
 template <typename T>
-interpolator track<T>::get_interpolator() const
+Interpolator Track<T>::get_interpolator() const
 {
 	return interp;
 }
 
 template <typename T>
-void track<T>::set_extrapolator(extrapolator extrap)
+void Track<T>::set_extrapolator(Extrapolator extrap)
 {
 	this->extrap = extrap;
 }
 
 template <typename T>
-extrapolator track<T>::get_extrapolator() const
+Extrapolator Track<T>::get_extrapolator() const
 {
 	return extrap;
 }
 
 template <typename T>
-void track<T>::add_key(const track_key<T> &key)
+void Track<T>::add_key(const TrackKey<T> &key)
 {
 	if(!keys.empty()) {
-		track_key<T> *nearest = get_nearest_key(key.time);
+		TrackKey<T> *nearest = get_nearest_key(key.time);
 		if(nearest->time == key.time) {
 			nearest->val = key.val;
 		} else {
@@ -135,38 +140,38 @@ void track<T>::add_key(const track_key<T> &key)
 }
 
 template <typename T>
-track_key<T> *track<T>::get_key(int time)
+TrackKey<T> *Track<T>::get_key(int time)
 {
-	track_key<T> *key = get_nearest_key(time);
+	TrackKey<T> *key = get_nearest_key(time);
 	if(!key) return 0;
 	return (key->time == time) ? key : 0;
 }
 
 template <typename T>
-void track<T>::delete_key(int time)
+void Track<T>::delete_key(int time)
 {
-	track_key<T> key;
+	TrackKey<T> key;
 	key.time = time;
-	typename std::vector<track_key<T> >::iterator iter = find(keys.begin(), keys.end(), key);
+	typename std::vector<TrackKey<T> >::iterator iter = find(keys.begin(), keys.end(), key);
 	if(iter != keys.end()) {
 		keys.erase(iter);
 	}
 }
 
 template <typename T>
-int track<T>::get_key_count() const
+int Track<T>::get_key_count() const
 {
 	return (int)keys.size();
 }
 
 template <typename T>
-const track_key<T> &track<T>::get_key_at(int idx) const
+const TrackKey<T> &Track<T>::get_key_at(int idx) const
 {
 	return keys[idx];
 }
 
 template <typename T>
-T track<T>::operator()(int time) const
+T Track<T>::operator()(int time) const
 {
 	if(keys.empty()) {
 		return def_val;
@@ -196,8 +201,8 @@ T track<T>::operator()(int time) const
 		}
 	}
 
-	const track_key<T> *start, *end;
-	((track<T>*)this)->get_key_interval(time, &start, &end);
+	const TrackKey<T> *start, *end;
+	((Track<T>*)this)->get_key_interval(time, &start, &end);
 	if(!start && !end) {
 		return def_val;
 	}
@@ -242,7 +247,7 @@ T track<T>::operator()(int time) const
 
 
 template <typename T>
-T track<T>::operator()(float t) const
+T Track<T>::operator()(float t) const
 {
 	return (*this)((int)(HENGE_ANIM_KEY_FLT_SCALE * t));
 }

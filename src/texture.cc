@@ -10,7 +10,9 @@
 #include "color.h"
 #include "errlog.h"
 #include "henge.h"
-#include "port.h"
+
+#include <sys/stat.h>
+#include <sys/types.h>
 
 // tests if an OpenGL pixel format is floating point
 #define IS_FLOAT_FMT(fmt)	\
@@ -21,23 +23,23 @@ using namespace std;
 using namespace henge;
 
 namespace henge {
-	bool set_render_target_fbo(texture *tex, int mrt_idx);
-	bool set_render_target_copy(texture *tex, int mrt_idx);
+	bool set_render_target_fbo(Texture *tex, int mrt_idx);
+	bool set_render_target_copy(Texture *tex, int mrt_idx);
 }
 
-static map<string, texture*> texman;
+static map<string, Texture*> texman;
 
 // a set of render targets is the element of the rt-stack
-struct rt_set {
+struct RTSet {
 	int num;
-	texture *rt[8];
+	Texture *rt[8];
 
-	rt_set() { num = 0; }
+	RTSet() { num = 0; }
 };
 
-static bool set_render_target_set(const rt_set &set);
+static bool set_render_target_set(const RTSet &set);
 
-static stack<rt_set> rt;
+static stack<RTSet> rt;
 static unsigned int fbo;
 
 
@@ -51,7 +53,7 @@ bool henge::init_textures()
 		glGenFramebuffersEXT(1, &fbo);
 	}
 
-	rt.push(rt_set());	// initial render target set is empty (regular framebuffer)
+	rt.push(RTSet());	// initial render target set is empty (regular framebuffer)
 	get_viewport(0, 0, 0, 0);	// make sure the internal viewport is updated
 
 	return true;
@@ -67,7 +69,7 @@ void henge::destroy_textures()
 		rt.pop();
 	}
 
-	map<string, texture*>::iterator iter = texman.begin();
+	map<string, Texture*>::iterator iter = texman.begin();
 	while(iter != texman.end()) {
 		delete iter++->second;
 	}
@@ -88,34 +90,34 @@ void henge::destroy_textures()
  * TODO: Should be fun to encode texture generators in the "name" string and have
  *	   textures be generated on demand and requested through the same interface.
  */
-texture *henge::get_texture(const char *name, unsigned int textype, unsigned int pixfmt)
+Texture *henge::get_texture(const char *name, unsigned int textype, unsigned int pixfmt)
 {
 	const char *prefix = IS_FLOAT_FMT(pixfmt) ? "float_" : "rgba32_";
 	char *dbname = (char*)alloca(strlen(name) + strlen(prefix) + 1);
 	sprintf(dbname, "%s%s", prefix, name);
 
-	map<string, texture*>::iterator iter = texman.find(dbname);
+	map<string, Texture*>::iterator iter = texman.find(dbname);
 	if(iter != texman.end()) {
 		return iter->second;
 	}
 
-	texture *tex;
+	Texture *tex;
 
 	switch(textype) {
 	case TEX_2D:
-		tex = new texture_2d;
+		tex = new Texture2D;
 		break;
 
 	case TEX_CUBE:
-		tex = new texture_cube;
+		tex = new TextureCube;
 		break;
 
 	default:
 		// try to guess...
 		if(strstr(name, ".cube")) {
-			tex = new texture_cube;
+			tex = new TextureCube;
 		} else {
-			tex = new texture_2d;
+			tex = new Texture2D;
 		}
 	}
 
@@ -139,9 +141,9 @@ texture *henge::get_texture(const char *name, unsigned int textype, unsigned int
 	return tex;
 }
 
-const char *henge::get_texture_name(const texture *tex)
+const char *henge::get_texture_name(const Texture *tex)
 {
-	map<string, texture*>::iterator iter = texman.begin();
+	map<string, Texture*>::iterator iter = texman.begin();
 	while(iter != texman.end()) {
 		if(iter->second == tex) {
 			return iter->first.c_str();
@@ -151,7 +153,7 @@ const char *henge::get_texture_name(const texture *tex)
 	return 0;
 }
 
-bool henge::add_texture(const char *name, texture *tex)
+bool henge::add_texture(const char *name, Texture *tex)
 {
 	try {
 		texman[name] = tex;
@@ -184,10 +186,10 @@ bool henge::dump_textures(bool managed_only)
 #endif
 
 	//if(managed_only) {
-		map<string, texture*>::iterator iter = texman.begin();
+		map<string, Texture*>::iterator iter = texman.begin();
 		while(iter != texman.end()) {
 			const char *name = iter->first.c_str();
-			texture *tex = (iter++)->second;
+			Texture *tex = (iter++)->second;
 
 			char *pname = new char[strlen(TEX_DUMP_DIR) + strlen(name) + 2];
 			sprintf(pname, "%s/%s", TEX_DUMP_DIR, name);
@@ -199,7 +201,7 @@ bool henge::dump_textures(bool managed_only)
 	/*}
 
 	char *pname = (char*)alloca(strlen(TEX_DUMP_DIR) + 6);
-	texture_2d tex;
+	Texture2D tex;
 
 	for(int i=0; i<2048; i++) {
 		if(!glIsTexture(i))
@@ -227,7 +229,7 @@ bool henge::push_render_target()
 {
 	try {
 		if(rt.empty()) {
-			rt.push(rt_set());
+			rt.push(RTSet());
 		} else {
 			rt.push(rt.top());
 		}
@@ -248,14 +250,14 @@ bool henge::pop_render_target()
 	return set_render_target_set(rt.top());
 }
 
-static bool (*setrt_func[])(texture*, int) = {
+static bool (*setrt_func[])(Texture*, int) = {
 	set_render_target_copy,
 	set_render_target_fbo
 };
 
-bool henge::set_render_target(texture *tex)
+bool henge::set_render_target(Texture *tex)
 {
-	rt_set set;
+	RTSet set;
 	set.num = 1;
 	set.rt[0] = tex;
 
@@ -272,12 +274,12 @@ bool henge::set_render_targets(int num, ...)
 	};
 
 	va_list ap;
-	rt_set set;
+	RTSet set;
 	set.num = num;
 
 	va_start(ap, num);
 	for(int i=0; i<num; i++) {
-		set.rt[i] = va_arg(ap, texture*);
+		set.rt[i] = va_arg(ap, Texture*);
 	}
 	va_end(ap);
 
@@ -290,7 +292,7 @@ bool henge::set_render_targets(int num, ...)
 	return true;
 }
 
-static bool set_render_target_set(const rt_set &set)
+static bool set_render_target_set(const RTSet &set)
 {
 	rt.top() = set;
 
@@ -329,7 +331,7 @@ static const char *fbstat_str[] = {
 		}	\
 	} while(0)
 
-bool henge::set_render_target_fbo(texture *tex, int mrt_idx)
+bool henge::set_render_target_fbo(Texture *tex, int mrt_idx)
 {
 	if(!caps.mrt && mrt_idx > 0) {
 		static bool emmited_error;
@@ -390,9 +392,9 @@ bool henge::set_render_target_fbo(texture *tex, int mrt_idx)
  * Ignores the mrt_idx parameter, if you're trying to do mrt without proper
  * render targets, you're clearly mad.
  */
-bool henge::set_render_target_copy(texture *tex, int mrt_idx)
+bool henge::set_render_target_copy(Texture *tex, int mrt_idx)
 {
-	static texture *prev;
+	static Texture *prev;
 
 	if(prev && prev != tex) {
 		prev->copy_frame(0, 0, prev->get_useful_width(), prev->get_useful_height());
@@ -402,7 +404,7 @@ bool henge::set_render_target_copy(texture *tex, int mrt_idx)
 }
 
 
-void henge::set_texture(const texture *tex, int unit)
+void henge::set_texture(const Texture *tex, int unit)
 {
 	if(tex) {
 		tex->bind(unit);
@@ -430,7 +432,7 @@ int round_pow2(int x)
 
 // -- texture abstract base class
 
-texture::texture()
+Texture::Texture()
 {
 	pixels = 0;
 	glGenTextures(1, &tid);
@@ -451,7 +453,7 @@ texture::texture()
 	rt_depth = 0;
 }
 
-texture::~texture()
+Texture::~Texture()
 {
 	if(pixels) {
 		delete [] pixels;
@@ -463,42 +465,42 @@ texture::~texture()
 	}
 }
 
-void texture::set_tex_id(unsigned int id)
+void Texture::set_tex_id(unsigned int id)
 {
 	tid = id;
 }
 
-unsigned int texture::get_tex_id() const
+unsigned int Texture::get_tex_id() const
 {
 	return tid;
 }
 
-void texture::set_mipmap_gen(bool genmip)
+void Texture::set_mipmap_gen(bool genmip)
 {
 	gen_mipmaps = genmip;
 }
 
-bool texture::get_mipmap_gen() const
+bool Texture::get_mipmap_gen() const
 {
 	return gen_mipmaps;
 }
 
-bool texture::is_transparent() const
+bool Texture::is_transparent() const
 {
 	return transp;
 }
 
-void texture::set_pixel_format(unsigned int fmt)
+void Texture::set_pixel_format(unsigned int fmt)
 {
 	pixfmt = fmt;
 }
 
-unsigned int texture::get_pixel_format() const
+unsigned int Texture::get_pixel_format() const
 {
 	return pixfmt;
 }
 
-void texture::set_wrap(unsigned int wrap)
+void Texture::set_wrap(unsigned int wrap)
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 	glBindTexture(textype, tid);
@@ -510,12 +512,12 @@ void texture::set_wrap(unsigned int wrap)
 	this->wrap = wrap;
 }
 
-unsigned int texture::get_wrap() const
+unsigned int Texture::get_wrap() const
 {
 	return wrap;
 }
 
-void texture::set_filter(unsigned int min, unsigned int mag)
+void Texture::set_filter(unsigned int min, unsigned int mag)
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 	glBindTexture(textype, tid);
@@ -527,18 +529,18 @@ void texture::set_filter(unsigned int min, unsigned int mag)
 	mag_filter = mag;
 }
 
-unsigned int texture::get_min_filter() const
+unsigned int Texture::get_min_filter() const
 {
 	return min_filter;
 }
 
 
-unsigned int texture::get_mag_filter() const
+unsigned int Texture::get_mag_filter() const
 {
 	return mag_filter;
 }
 
-void texture::set_max_anisotropy(float val)
+void Texture::set_max_anisotropy(float val)
 {
 	if(caps.aniso) {
 		if(val < 1.0) val = (float)caps.max_aniso;
@@ -552,48 +554,48 @@ void texture::set_max_anisotropy(float val)
 	}
 }
 
-float texture::get_max_anisotropy() const
+float Texture::get_max_anisotropy() const
 {
 	return aniso;
 }
 
-void texture::set_width(int w)
+void Texture::set_width(int w)
 {
 	xsz = w;
 }
 
-void texture::set_height(int h)
+void Texture::set_height(int h)
 {
 	ysz = h;
 }
 
-int texture::get_width() const
+int Texture::get_width() const
 {
 	return xsz;
 }
 
-int texture::get_height() const
+int Texture::get_height() const
 {
 	return ysz;
 }
 
-void texture::set_useful_area(int w, int h)
+void Texture::set_useful_area(int w, int h)
 {
 	uxsz = w;
 	uysz = h;
 }
 
-int texture::get_useful_width() const
+int Texture::get_useful_width() const
 {
 	return uxsz == -1 ? xsz : uxsz;
 }
 
-int texture::get_useful_height() const
+int Texture::get_useful_height() const
 {
 	return uysz == -1 ? ysz : uysz;
 }
 
-void texture::bind(int tunit) const
+void Texture::bind(int tunit) const
 {
 	static bool dirty_texmat;
 
@@ -643,7 +645,7 @@ void texture::bind(int tunit) const
 
 // -- 2d texture class
 
-texture_2d::texture_2d()
+Texture2D::Texture2D()
 {
 	xsz = ysz = -1;
 	textype = GL_TEXTURE_2D;
@@ -659,13 +661,13 @@ texture_2d::texture_2d()
 	glPopAttrib();
 }
 
-texture_2d::~texture_2d()
+Texture2D::~Texture2D()
 {
 }
 
-void texture_2d::set_mipmap_gen(bool genmip)
+void Texture2D::set_mipmap_gen(bool genmip)
 {
-	texture::set_mipmap_gen(genmip);
+	Texture::set_mipmap_gen(genmip);
 
 	if(caps.gen_mipmaps) {
 		glPushAttrib(GL_TEXTURE_BIT);
@@ -675,9 +677,9 @@ void texture_2d::set_mipmap_gen(bool genmip)
 	}
 }
 
-bool texture_2d::load(const char *fname)
+bool Texture2D::load(const char *fname)
 {
-	pixmap img;
+	Pixmap img;
 
 	if(IS_FLOAT_FMT(pixfmt)) {
 		img.fmt = PIX_FLOAT;
@@ -691,7 +693,7 @@ bool texture_2d::load(const char *fname)
 }
 
 
-static pixmap_format gl2pixfmt(unsigned int fmt)
+static PixmapFormat gl2pixfmt(unsigned int fmt)
 {
 	if(IS_FLOAT_FMT(fmt)) {
 		return PIX_FLOAT;
@@ -699,22 +701,22 @@ static pixmap_format gl2pixfmt(unsigned int fmt)
 	return PIX_RGBA32;
 }
 
-bool texture_2d::save(const char *fname)
+bool Texture2D::save(const char *fname)
 {
 	if(memcmp(fname, ".cube", 6) == 0) {
 		return false;
 	}
 
-	pixmap img;
+	Pixmap img;
 	if(!img.set_pixels(xsz, ysz, gl2pixfmt(pixfmt), get_image())) {
 		return false;
 	}
 	return img.save(fname);
 }
 
-bool texture_2d::generate(const char *expr)
+bool Texture2D::generate(const char *expr)
 {
-	pixmap img;
+	Pixmap img;
 	if(!img.generate(expr)) {
 		return false;
 	}
@@ -722,7 +724,7 @@ bool texture_2d::generate(const char *expr)
 	return true;
 }
 
-static unsigned int glpixfmt(pixmap_format fmt)
+static unsigned int glpixfmt(PixmapFormat fmt)
 {
 	switch(fmt) {
 	case PIX_RGBA32:
@@ -738,7 +740,7 @@ static unsigned int glpixfmt(pixmap_format fmt)
 	return 0;
 }
 
-static unsigned int glpixtype(pixmap_format fmt)
+static unsigned int glpixtype(PixmapFormat fmt)
 {
 	switch(fmt) {
 	case PIX_RGBA32:
@@ -754,7 +756,7 @@ static unsigned int glpixtype(pixmap_format fmt)
 	return 0;
 }
 
-void texture_2d::set_image(const pixmap &img)
+void Texture2D::set_image(const Pixmap &img)
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 	glBindTexture(textype, tid);
@@ -781,7 +783,7 @@ void texture_2d::set_image(const pixmap &img)
 			if(gen_mipmaps && !caps.gen_mipmaps) {
 				gluBuild2DMipmaps(GL_TEXTURE_2D, pixfmt, img.xsz, img.ysz, glpixfmt(img.fmt), glpixtype(img.fmt), img.pixels);
 			} else {
-				// faster version, no need to re-create the texture_2d, just update the pixels
+				// faster version, no need to re-create the Texture2D, just update the pixels
 				glTexSubImage2D(textype, 0, 0, 0, img.xsz, img.ysz, glpixfmt(img.fmt), glpixtype(img.fmt), img.pixels);
 			}
 		}
@@ -790,9 +792,9 @@ void texture_2d::set_image(const pixmap &img)
 	glPopAttrib();
 }
 
-void texture_2d::set_image(uint32_t *pixels, int x, int y)
+void Texture2D::set_image(uint32_t *pixels, int x, int y)
 {
-	pixmap img;
+	Pixmap img;
 	img.pixels = pixels;
 	img.xsz = x;
 	img.ysz = y;
@@ -802,7 +804,7 @@ void texture_2d::set_image(uint32_t *pixels, int x, int y)
 	img.pixels = 0;
 }
 
-uint32_t *texture_2d::get_image() const
+uint32_t *Texture2D::get_image() const
 {
 	if(!pixels) {
 		try {
@@ -821,12 +823,12 @@ uint32_t *texture_2d::get_image() const
 }
 
 
-void texture_2d::copy_frame()
+void Texture2D::copy_frame()
 {
 	copy_frame(0, 0, xsz, ysz);
 }
 
-void texture_2d::copy_frame(int x, int y, int xsz, int ysz)
+void Texture2D::copy_frame(int x, int y, int xsz, int ysz)
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 	glBindTexture(GL_TEXTURE_2D, tid);
@@ -836,7 +838,7 @@ void texture_2d::copy_frame(int x, int y, int xsz, int ysz)
 
 // -- cubemap class
 
-texture_cube::texture_cube()
+TextureCube::TextureCube()
 {
 	textype = GL_TEXTURE_CUBE_MAP_ARB;
 	transp_cube = 0;
@@ -853,16 +855,16 @@ texture_cube::texture_cube()
 	memset(face_tex_inited, 0, sizeof face_tex_inited);
 }
 
-texture_cube::~texture_cube()
+TextureCube::~TextureCube()
 {
 }
 
-bool texture_cube::is_transparent() const
+bool TextureCube::is_transparent() const
 {
 	return transp_cube != 0;
 }
 
-bool texture_cube::load(const char *fname)
+bool TextureCube::load(const char *fname)
 {
 	char buf[PATH_MAX];
 	if(!find_file(fname, buf)) {
@@ -891,7 +893,7 @@ bool texture_cube::load(const char *fname)
 			*p = 0;
 		}
 
-		pixmap img;
+		Pixmap img;
 
 		if(IS_FLOAT_FMT(pixfmt)) {
 			img.fmt = PIX_FLOAT;
@@ -946,11 +948,11 @@ static int get_yoffs(int face, int ysz)
  *     |-Z |  } last face rotated 180deg
  *     +---+ /
  */
-bool texture_cube::load_cross(const char *fname)
+bool TextureCube::load_cross(const char *fname)
 {
 	int size;
 
-	pixmap img;
+	Pixmap img;
 
 	if(IS_FLOAT_FMT(pixfmt)) {
 		img.fmt = PIX_FLOAT;
@@ -969,7 +971,7 @@ bool texture_cube::load_cross(const char *fname)
 		int xoffs = get_xoffs(i, img.xsz);
 		int yoffs = get_yoffs(i, img.ysz);
 
-		pixmap fimg;
+		Pixmap fimg;
 		fimg.set_pixels(size, size, img.fmt, 0);
 
 		copy_pixels(&fimg, 0, 0, &img, xoffs, yoffs, size, size);
@@ -984,11 +986,11 @@ bool texture_cube::load_cross(const char *fname)
 	return true;
 }
 
-bool texture_cube::save(const char *fname)
+bool TextureCube::save(const char *fname)
 {
 	char *face_fname = (char*)alloca(strlen(fname) + 4);
 
-	pixmap img;
+	Pixmap img;
 
 	for(int i=0; i<6; i++) {
 		uint32_t *pix = get_image(i + GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
@@ -1007,15 +1009,15 @@ bool texture_cube::save(const char *fname)
 	return true;
 }
 
-bool texture_cube::generate(const char *expr)
+bool TextureCube::generate(const char *expr)
 {
 	return false;	// TODO
 }
 
-void texture_cube::set_image(const pixmap &img, unsigned int face)
+void TextureCube::set_image(const Pixmap &img, unsigned int face)
 {
 	if(face < GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB || face > GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB) {
-		error("invalid face passed to texture_cube::set_image: %d\n", face);
+		error("invalid face passed to TextureCube::set_image: %d\n", face);
 		return;
 	}
 
@@ -1042,7 +1044,7 @@ void texture_cube::set_image(const pixmap &img, unsigned int face)
 		glassert();
 		face_tex_inited[fidx] = true;
 	} else {
-		// faster version, no need to re-create the texture_2d, just update the pixels
+		// faster version, no need to re-create the Texture2D, just update the pixels
 		glTexSubImage2D(face, 0, 0, 0, size, size, glpixfmt(img.fmt), glpixtype(img.fmt), img.pixels);
 		glassert();
 	}
@@ -1050,9 +1052,9 @@ void texture_cube::set_image(const pixmap &img, unsigned int face)
 	glPopAttrib();
 }
 
-void texture_cube::set_image(uint32_t *pixels, int size, unsigned int face)
+void TextureCube::set_image(uint32_t *pixels, int size, unsigned int face)
 {
-	pixmap img;
+	Pixmap img;
 	img.pixels = pixels;
 	img.xsz = img.ysz = size;
 	img.fmt = PIX_RGBA32;
@@ -1061,7 +1063,7 @@ void texture_cube::set_image(uint32_t *pixels, int size, unsigned int face)
 	img.pixels = 0;
 }
 
-uint32_t *texture_cube::get_image(unsigned int face) const
+uint32_t *TextureCube::get_image(unsigned int face) const
 {
 	if(!pixels) {
 		try {
@@ -1080,28 +1082,28 @@ uint32_t *texture_cube::get_image(unsigned int face) const
 	return pixels;
 }
 
-int texture_cube::get_size() const
+int TextureCube::get_size() const
 {
 	assert(xsz == ysz);
 	return xsz;
 }
 
-void texture_cube::copy_frame()
+void TextureCube::copy_frame()
 {
 	copy_frame(0, 0, xsz, ysz, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
 }
 
-void texture_cube::copy_frame(int face)
+void TextureCube::copy_frame(int face)
 {
 	copy_frame(0, 0, xsz, ysz, face);
 }
 
-void texture_cube::copy_frame(int x, int y, int xsz, int ysz)
+void TextureCube::copy_frame(int x, int y, int xsz, int ysz)
 {
 	copy_frame(0, 0, xsz, ysz, GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB);
 }
 
-void texture_cube::copy_frame(int x, int y, int xsz, int ysz, int face)
+void TextureCube::copy_frame(int x, int y, int xsz, int ysz, int face)
 {
 	glPushAttrib(GL_TEXTURE_BIT);
 	glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, tid);
@@ -1109,7 +1111,7 @@ void texture_cube::copy_frame(int x, int y, int xsz, int ysz, int face)
 	glPopAttrib();
 }
 
-void henge::heightmap_to_normalmap(texture_2d *tex, float scale_fact)
+void henge::heightmap_to_normalmap(Texture2D *tex, float scale_fact)
 {
 	uint32_t *src = tex->get_image();
 	int xsz = tex->get_width();

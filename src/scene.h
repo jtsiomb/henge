@@ -24,25 +24,25 @@ enum {
 	NUM_SCITEMS
 };
 
-class scene {
+class Scene {
 protected:
-	std::map<std::string, robject*> objmap;
+	std::map<std::string, RObject*> objmap;
 
-	std::vector<robject*> objects;
-	std::vector<light*> lights;
-	std::vector<camera*> cameras;
-	std::vector<particle_system*> particles;
-	std::vector<render_func> rfuncs;
+	std::vector<RObject*> objects;
+	std::vector<Light*> lights;
+	std::vector<Camera*> cameras;
+	std::vector<ParticleSystem*> particles;
+	std::vector<RenderFunc> rfuncs;
 
-	mutable aabox bbox;
-	mutable bsphere bsph;
+	mutable AABox bbox;
+	mutable BSphere bsph;
 	mutable bool bounds_valid;
 
 	// maps each item (object/light/etc) to a flag controlling
 	// automatic deletion of the item when clean is called.
 	std::map<const void*, bool> del_item;
 
-	camera *active_cam;
+	Camera *active_cam;
 
 	bool load_ms3d(FILE *fp);
 	bool load_3ds(FILE *fp);
@@ -52,8 +52,8 @@ protected:
 	void calc_bounds() const;
 
 public:
-	scene();
-	virtual ~scene();
+	Scene();
+	virtual ~Scene();
 
 	bool load(const char *fname);
 
@@ -68,33 +68,33 @@ public:
 	void set_auto_destruct(const void *item, bool auto_del);
 	bool get_auto_destruct(const void *item) const;
 
-	bool add_object(robject *obj);
-	bool add_light(light *lt);
-	bool add_camera(camera *cam);
-	bool add_particles(particle_system *psys);
-	bool add_render_func(const render_func &rfunc);
+	bool add_object(RObject *obj);
+	bool add_light(Light *lt);
+	bool add_camera(Camera *cam);
+	bool add_particles(ParticleSystem *psys);
+	bool add_render_func(const RenderFunc &rfunc);
 
-	robject *get_object(const char *name) const;
-	robject *get_object(int idx) const;
+	RObject *get_object(const char *name) const;
+	RObject *get_object(int idx) const;
 
-	light *get_light(const char *name) const;
-	light *get_light(int idx) const;
+	Light *get_light(const char *name) const;
+	Light *get_light(int idx) const;
 
-	camera *get_camera(const char *name) const;
-	camera *get_camera(int idx) const;
+	Camera *get_camera(const char *name) const;
+	Camera *get_camera(int idx) const;
 
 	bool remove_object(const char *name);
 
-	robject **get_objects();
-	robject * const *get_objects() const;
-	light **get_lights();
-	light * const *get_lights() const;
-	camera **get_cameras();
-	camera * const *get_cameras() const;
-	particle_system **get_particles();
-	particle_system * const *get_particles() const;
-	render_func *get_render_funcs();
-	const render_func *get_render_funcs() const;
+	RObject **get_objects();
+	RObject * const *get_objects() const;
+	Light **get_lights();
+	Light * const *get_lights() const;
+	Camera **get_cameras();
+	Camera * const *get_cameras() const;
+	ParticleSystem **get_particles();
+	ParticleSystem * const *get_particles() const;
+	RenderFunc *get_render_funcs();
+	const RenderFunc *get_render_funcs() const;
 
 	int object_count() const;
 	int light_count() const;
@@ -102,10 +102,10 @@ public:
 	int particle_count() const;
 	int render_func_count() const;
 
-	bool merge(const scene &scn);
+	bool merge(const Scene &scn);
 
-	const aabox *get_bbox() const;
-	const bsphere *get_bsphere() const;
+	const AABox *get_bbox() const;
+	const BSphere *get_bsphere() const;
 
 	void setup_lights(unsigned int msec = 0) const;
 	void setup_camera(unsigned int msec = 0) const;

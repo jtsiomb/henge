@@ -6,26 +6,26 @@
 
 namespace henge {
 
-class camera : public xform_node {
+class Camera : public XFormNode {
 public:
-	virtual ~camera();
+	virtual ~Camera();
 
-	virtual camera *clone() const;
+	virtual Camera *clone() const;
 
 	virtual Matrix4x4 get_matrix(unsigned int time = 0) const;
 	void bind(unsigned int time = 0) const;
 };
 
-class target_camera : public camera {
+class TargetCamera : public Camera {
 protected:
-	xform_node target;
+	XFormNode target;
 
 public:
-	target_camera();
-	target_camera(const Vector3 &pos, const Vector3 &targ);
-	virtual ~target_camera();
+	TargetCamera();
+	TargetCamera(const Vector3 &pos, const Vector3 &targ);
+	virtual ~TargetCamera();
 
-	virtual target_camera *clone() const;
+	virtual TargetCamera *clone() const;
 
 	void set_target(const Vector3 &pos, unsigned int time = 0);
 	Vector3 get_target(unsigned int time = 0) const;

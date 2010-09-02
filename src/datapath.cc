@@ -3,8 +3,13 @@
 #include <vector>
 #include <string>
 #include "datapath.h"
-#include "port.h"
 #include "errlog.h"
+
+#ifdef MSC_VER_
+#include <malloc.h>
+#else
+#include <alloca.h>
+#endif
 
 using namespace henge;
 using namespace std;
