@@ -18,7 +18,7 @@ enum {
 	EL_COUNT
 };
 
-class trimesh {
+class TriMesh {
 private:
 	Vector3 *vert;
 	Vector3 *norm;
@@ -34,7 +34,7 @@ private:
 	mutable unsigned int vbo[EL_COUNT];
 	mutable bool vbo_valid[EL_COUNT];
 
-	kdtree<int> kdt;
+	KDTree<int> kdt;
 	bool kdt_valid;
 
 	Vector3 centroid;
@@ -52,16 +52,16 @@ private:
 	void invalidate(int elmask);
 
 public:
-	trimesh();
-	~trimesh();
+	TriMesh();
+	~TriMesh();
 
-	trimesh(const trimesh &mesh);
-	trimesh &operator =(const trimesh &mesh);
+	TriMesh(const TriMesh &mesh);
+	TriMesh &operator =(const TriMesh &mesh);
 
 	void set_dynamic(bool dynamic);
 	bool get_dynamic() const;
 
-	bool merge(const trimesh &mesh);
+	bool merge(const TriMesh &mesh);
 
 	/* The data pointer can be null, in which no copy is attempted.
 	 * Memory allocation and internal state setup is still performed,
@@ -102,9 +102,9 @@ public:
 	float get_bsph_radius() const;
 
 	void draw() const;
-	void draw_normals(float sz = 1.0, const color &col = color(0, 1, 0, 1)) const;
-	void draw_tangents(float sz = 1.0, const color &col = color(0, 1, 0, 1)) const;
-	void draw_vertices(float sz = 1.0, const color &col = color(1, 0, 0, 1)) const;
+	void draw_normals(float sz = 1.0, const Color &col = Color(0, 1, 0, 1)) const;
+	void draw_tangents(float sz = 1.0, const Color &col = Color(0, 1, 0, 1)) const;
+	void draw_vertices(float sz = 1.0, const Color &col = Color(1, 0, 0, 1)) const;
 
 	bool intersect(const Ray &ray, float *pt = 0) const;
 };

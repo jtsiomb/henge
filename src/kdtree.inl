@@ -1,40 +1,40 @@
 namespace henge {
 
 template <typename T, typename S>
-struct kdnode {
+struct KDNode {
 	S *pos;
 	int dir;
 	T data;
 	S dist_sq;		// used for result set ordering by distance
 
-	kdnode<T, S> *left, *right;
+	KDNode<T, S> *left, *right;
 
-	bool operator <(const kdnode<T, S> &rhs) const;
+	bool operator <(const KDNode<T, S> &rhs) const;
 };
 
 
 template <typename T, typename S>
-bool kdnode<T, S>::operator <(const kdnode<T, S> &rhs) const
+bool KDNode<T, S>::operator <(const KDNode<T, S> &rhs) const
 {
 	return dist_sq < rhs.dist_sq;
 }
 
 template <typename T, typename S>
-kdtree<T, S>::kdtree(int k)
+KDTree<T, S>::KDTree(int k)
 {
 	dim = k;
 	root = 0;
 }
 
 template <typename T, typename S>
-kdtree<T, S>::~kdtree()
+KDTree<T, S>::~KDTree()
 {
 	clear();
 }
 
 
 template <typename T, typename S>
-void kdtree<T, S>::clear_rec(kdnode<T, S> *node)
+void KDTree<T, S>::clear_rec(KDNode<T, S> *node)
 {
 	if(!node) return;
 
@@ -46,11 +46,11 @@ void kdtree<T, S>::clear_rec(kdnode<T, S> *node)
 }
 
 template <typename T, typename S>
-bool kdtree<T, S>::insert_rec(kdnode<T, S> *&node, const S *pos, const T &data, int dir)
+bool KDTree<T, S>::insert_rec(KDNode<T, S> *&node, const S *pos, const T &data, int dir)
 {
 	if(!node) {
 		try {
-			node = new kdnode<T, S>;
+			node = new KDNode<T, S>;
 			node->pos = new S[dim];
 		}
 		catch(...) {
@@ -73,7 +73,7 @@ bool kdtree<T, S>::insert_rec(kdnode<T, S> *&node, const S *pos, const T &data, 
 }
 
 template <typename T, typename S>
-int kdtree<T, S>::nearest_rec(kdnode<T, S> *node, const S *pos, S range, kdres<T, S> *res) const
+int KDTree<T, S>::nearest_rec(KDNode<T, S> *node, const S *pos, S range, KDRes<T, S> *res) const
 {
 	int added_res = 0;
 
@@ -102,19 +102,19 @@ int kdtree<T, S>::nearest_rec(kdnode<T, S> *node, const S *pos, S range, kdres<T
 }
 
 template <typename T, typename S>
-void kdtree<T, S>::clear()
+void KDTree<T, S>::clear()
 {
 	clear_rec(root);
 }
 
 template <typename T, typename S>
-bool kdtree<T, S>::insert(const S *pos, const T &data)
+bool KDTree<T, S>::insert(const S *pos, const T &data)
 {
 	return insert_rec(root, pos, data, 0);
 }
 
 template <typename T, typename S>
-bool kdtree<T, S>::insert(S x, S y, S z, const T &data)
+bool KDTree<T, S>::insert(S x, S y, S z, const T &data)
 {
 	S *buf;
 	try {
@@ -136,9 +136,9 @@ bool kdtree<T, S>::insert(S x, S y, S z, const T &data)
 }
 
 template <typename T, typename S>
-kdres<T, S> *kdtree<T, S>::nearest(const S *pos, S range, bool ordered) const
+KDRes<T, S> *KDTree<T, S>::nearest(const S *pos, S range, bool ordered) const
 {
-	kdres<T, S> *res = new kdres<T, S>;
+	KDRes<T, S> *res = new KDRes<T, S>;
 
 	int num = nearest_rec(root, pos, range, res);
 
@@ -152,7 +152,7 @@ kdres<T, S> *kdtree<T, S>::nearest(const S *pos, S range, bool ordered) const
 }
 
 template <typename T, typename S>
-kdres<T, S> *kdtree<T, S>::nearest(S x, S y, S z, S range, bool ordered) const
+KDRes<T, S> *KDTree<T, S>::nearest(S x, S y, S z, S range, bool ordered) const
 {
 	S *buf;
 	try {
@@ -167,7 +167,7 @@ kdres<T, S> *kdtree<T, S>::nearest(S x, S y, S z, S range, bool ordered) const
 	if(dim > 1) buf[1] = y;
 	if(dim > 2) buf[2] = z;
 
-	kdres<T, S> *res = nearest(buf, range, ordered);
+	KDRes<T, S> *res = nearest(buf, range, ordered);
 
 	delete [] buf;
 	return res;
@@ -175,38 +175,38 @@ kdres<T, S> *kdtree<T, S>::nearest(S x, S y, S z, S range, bool ordered) const
 
 
 template <typename T, typename S>
-int kdres<T, S>::size() const
+int KDRes<T, S>::size() const
 {
 	return sz;
 }
 
 template <typename T, typename S>
-void kdres<T, S>::rewind()
+void KDRes<T, S>::rewind()
 {
 	iter = rlist.begin();
 }
 
 template <typename T, typename S>
-bool kdres<T, S>::have_more() const
+bool KDRes<T, S>::have_more() const
 {
 	return iter != rlist.end();
 }
 
 template <typename T, typename S>
-bool kdres<T, S>::next()
+bool KDRes<T, S>::next()
 {
 	iter++;
 	return iter != rlist.end();
 }
 
 template <typename T, typename S>
-const T &kdres<T, S>::get_data() const
+const T &KDRes<T, S>::get_data() const
 {
 	return (*iter)->data;
 }
 
 template <typename T, typename S>
-const S *kdres<T, S>::get_pos() const
+const S *KDRes<T, S>::get_pos() const
 {
 	return (*iter)->pos;
 }

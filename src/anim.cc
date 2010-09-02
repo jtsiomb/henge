@@ -8,7 +8,7 @@ using namespace std;
 
 #define INVAL_TIME		UINT_MAX
 
-xform_node::xform_node()
+XFormNode::XFormNode()
 {
 	parent = 0;
 	name = 0;
@@ -17,12 +17,12 @@ xform_node::xform_node()
 	reset_xform();
 }
 
-xform_node::xform_node(const xform_node &node)
+XFormNode::XFormNode(const XFormNode &node)
 {
 	*this = node;
 }
 
-xform_node &xform_node::operator =(const xform_node &node)
+XFormNode &XFormNode::operator =(const XFormNode &node)
 {
 	if(this == &node) {
 		return *this;
@@ -49,23 +49,23 @@ xform_node &xform_node::operator =(const xform_node &node)
 	return *this;
 }
 
-xform_node::~xform_node()
+XFormNode::~XFormNode()
 {
 	delete [] name;
 }
 
-void xform_node::invalidate_matrix_cache()
+void XFormNode::invalidate_matrix_cache()
 {
 	cache_time = INVAL_TIME;
 }
 
-xform_node *xform_node::clone() const
+XFormNode *XFormNode::clone() const
 {
-	printf("xform_node::clone\n");
-	return new xform_node(*this);
+	printf("XFormNode::clone\n");
+	return new XFormNode(*this);
 }
 
-void xform_node::set_interpolator(interpolator interp)
+void XFormNode::set_interpolator(Interpolator interp)
 {
 	ptrack.set_interpolator(interp);
 	rtrack.set_interpolator(interp);
@@ -73,7 +73,7 @@ void xform_node::set_interpolator(interpolator interp)
 	invalidate_matrix_cache();
 }
 
-void xform_node::set_extrapolator(extrapolator extrap)
+void XFormNode::set_extrapolator(Extrapolator extrap)
 {
 	ptrack.set_extrapolator(extrap);
 	rtrack.set_extrapolator(extrap);
@@ -81,7 +81,7 @@ void xform_node::set_extrapolator(extrapolator extrap)
 	invalidate_matrix_cache();
 }
 
-void xform_node::set_name(const char *name)
+void XFormNode::set_name(const char *name)
 {
 	if(this->name) {
 		delete [] this->name;
@@ -94,12 +94,12 @@ void xform_node::set_name(const char *name)
 	}
 }
 
-const char *xform_node::get_name() const
+const char *XFormNode::get_name() const
 {
 	return name;
 }
 
-void xform_node::add_child(xform_node *child)
+void XFormNode::add_child(XFormNode *child)
 {
 	if(find(children.begin(), children.end(), child) == children.end()) {
 		child->parent = this;
@@ -108,9 +108,9 @@ void xform_node::add_child(xform_node *child)
 	}
 }
 
-void xform_node::remove_child(xform_node *child)
+void XFormNode::remove_child(XFormNode *child)
 {
-	vector<xform_node*>::iterator iter;
+	vector<XFormNode*>::iterator iter;
 	iter = find(children.begin(), children.end(), child);
 	if(iter != children.end()) {
 		(*iter)->invalidate_matrix_cache();
@@ -118,59 +118,59 @@ void xform_node::remove_child(xform_node *child)
 	}
 }
 
-xform_node **xform_node::get_children()
+XFormNode **XFormNode::get_children()
 {
 	return &children[0];
 }
 
-int xform_node::get_children_count() const
+int XFormNode::get_children_count() const
 {
 	return (int)children.size();
 }
 
-void xform_node::set_pivot(const Vector3 &p)
+void XFormNode::set_pivot(const Vector3 &p)
 {
 	pivot = p;
 	invalidate_matrix_cache();
 }
 
-const Vector3 &xform_node::get_pivot() const
+const Vector3 &XFormNode::get_pivot() const
 {
 	return pivot;
 }
 
-void xform_node::reset_position()
+void XFormNode::reset_position()
 {
 	ptrack.reset(Vector3(0, 0, 0));
 	invalidate_matrix_cache();
 }
 
-void xform_node::reset_rotation()
+void XFormNode::reset_rotation()
 {
 	rtrack.reset(Quaternion());
 	invalidate_matrix_cache();
 }
 
-void xform_node::reset_scaling()
+void XFormNode::reset_scaling()
 {
 	strack.reset(Vector3(1, 1, 1));
 	invalidate_matrix_cache();
 }
 
-void xform_node::reset_xform()
+void XFormNode::reset_xform()
 {
 	reset_position();
 	reset_rotation();
 	reset_scaling();
 }
-	
-void xform_node::set_position(const Vector3 &pos, int time)
+
+void XFormNode::set_position(const Vector3 &pos, int time)
 {
-	track_key<Vector3> *key = ptrack.get_key(time);
+	TrackKey<Vector3> *key = ptrack.get_key(time);
 	if(key) {
 		key->val = pos;
 	} else {
-		ptrack.add_key(track_key<Vector3>(pos, time));
+		ptrack.add_key(TrackKey<Vector3>(pos, time));
 	}
 
 	if(time == cache_time) {
@@ -178,17 +178,17 @@ void xform_node::set_position(const Vector3 &pos, int time)
 	}
 }
 
-static void set_rotation_quat(track<Quaternion> *track, const Quaternion &rot, int time)
+static void set_rotation_quat(Track<Quaternion> *track, const Quaternion &rot, int time)
 {
-	track_key<Quaternion> *key = track->get_key(time);
+	TrackKey<Quaternion> *key = track->get_key(time);
 	if(key) {
 		key->val = rot;
 	} else {
-		track->add_key(track_key<Quaternion>(rot, time));
+		track->add_key(TrackKey<Quaternion>(rot, time));
 	}
 }
 
-void xform_node::set_rotation(const Quaternion &rot, int time)
+void XFormNode::set_rotation(const Quaternion &rot, int time)
 {
 	set_rotation_quat(&rtrack, rot, time);
 
@@ -197,7 +197,7 @@ void xform_node::set_rotation(const Quaternion &rot, int time)
 	}
 }
 
-void xform_node::set_rotation(const Vector3 &euler, int time)
+void XFormNode::set_rotation(const Vector3 &euler, int time)
 {
 	Quaternion xrot, yrot, zrot;
 	xrot.set_rotation(Vector3(1, 0, 0), euler.x);
@@ -210,7 +210,7 @@ void xform_node::set_rotation(const Vector3 &euler, int time)
 	}
 }
 
-void xform_node::set_rotation(double angle, const Vector3 &axis, int time)
+void XFormNode::set_rotation(double angle, const Vector3 &axis, int time)
 {
 	set_rotation_quat(&rtrack, Quaternion(axis, angle), time);
 
@@ -219,27 +219,27 @@ void xform_node::set_rotation(double angle, const Vector3 &axis, int time)
 	}
 }
 
-void xform_node::set_scaling(const Vector3 &s, int time)
+void XFormNode::set_scaling(const Vector3 &s, int time)
 {
-	track_key<Vector3> *key = strack.get_key(time);
+	TrackKey<Vector3> *key = strack.get_key(time);
 	if(key) {
 		key->val = s;
 	} else {
-		strack.add_key(track_key<Vector3>(s, time));
+		strack.add_key(TrackKey<Vector3>(s, time));
 	}
 
 	if(time == cache_time) {
 		invalidate_matrix_cache();
 	}
 }
-	
-void xform_node::translate(const Vector3 &pos, int time)
+
+void XFormNode::translate(const Vector3 &pos, int time)
 {
-	track_key<Vector3> *key = ptrack.get_key(time);
+	TrackKey<Vector3> *key = ptrack.get_key(time);
 	if(key) {
 		key->val += pos;
 	} else {
-		ptrack.add_key(track_key<Vector3>(pos, time));
+		ptrack.add_key(TrackKey<Vector3>(pos, time));
 	}
 
 	if(time == cache_time) {
@@ -247,13 +247,13 @@ void xform_node::translate(const Vector3 &pos, int time)
 	}
 }
 
-void xform_node::rotate(const Quaternion &rot, int time)
+void XFormNode::rotate(const Quaternion &rot, int time)
 {
-	track_key<Quaternion> *key = rtrack.get_key(time);
+	TrackKey<Quaternion> *key = rtrack.get_key(time);
 	if(key) {
 		key->val = rot * key->val;
 	} else {
-		rtrack.add_key(track_key<Quaternion>(rot, time));
+		rtrack.add_key(TrackKey<Quaternion>(rot, time));
 	}
 
 	if(time == cache_time) {
@@ -261,7 +261,7 @@ void xform_node::rotate(const Quaternion &rot, int time)
 	}
 }
 
-void xform_node::rotate(const Vector3 &euler, int time)
+void XFormNode::rotate(const Vector3 &euler, int time)
 {
 	Quaternion xrot, yrot, zrot;
 	xrot.set_rotation(Vector3(1, 0, 0), euler.x);
@@ -270,18 +270,18 @@ void xform_node::rotate(const Vector3 &euler, int time)
 	rotate(xrot * yrot * zrot, time);
 }
 
-void xform_node::rotate(double angle, const Vector3 &axis, int time)
+void XFormNode::rotate(double angle, const Vector3 &axis, int time)
 {
 	rotate(Quaternion(axis, angle), time);
 }
 
-void xform_node::scale(const Vector3 &s, int time)
+void XFormNode::scale(const Vector3 &s, int time)
 {
-	track_key<Vector3> *key = strack.get_key(time);
+	TrackKey<Vector3> *key = strack.get_key(time);
 	if(key) {
 		key->val *= s;
 	} else {
-		strack.add_key(track_key<Vector3>(s, time));
+		strack.add_key(TrackKey<Vector3>(s, time));
 	}
 
 	if(time == cache_time) {
@@ -289,7 +289,7 @@ void xform_node::scale(const Vector3 &s, int time)
 	}
 }
 
-Vector3 xform_node::get_position(int time) const
+Vector3 XFormNode::get_position(int time) const
 {
 	Vector3 pos = ptrack(time);
 	if(parent) {
@@ -304,22 +304,22 @@ Vector3 xform_node::get_position(int time) const
 	return pos;
 }
 
-Vector3 xform_node::get_local_position(int time) const
+Vector3 XFormNode::get_local_position(int time) const
 {
 	return ptrack(time);
 }
 
-Quaternion xform_node::get_local_rotation(int time) const
+Quaternion XFormNode::get_local_rotation(int time) const
 {
 	return rtrack(time);
 }
 
-Vector3 xform_node::get_local_scaling(int time) const
+Vector3 XFormNode::get_local_scaling(int time) const
 {
 	return strack(time);
 }
 
-Quaternion xform_node::get_rotation(int time) const
+Quaternion XFormNode::get_rotation(int time) const
 {
 	if(parent) {
 		return parent->get_rotation(time) * rtrack(time);
@@ -327,7 +327,7 @@ Quaternion xform_node::get_rotation(int time) const
 	return rtrack(time);
 }
 
-Vector3 xform_node::get_scaling(int time) const
+Vector3 XFormNode::get_scaling(int time) const
 {
 	if(parent) {
 		return strack(time) * parent->get_scaling(time);
@@ -335,11 +335,11 @@ Vector3 xform_node::get_scaling(int time) const
 	return strack(time);
 }
 
-Matrix4x4 xform_node::get_xform_matrix(int time) const
+Matrix4x4 XFormNode::get_xform_matrix(int time) const
 {
 	if(cache_time != time) {
 		Matrix4x4 trans_mat, rot_mat, scale_mat, pivot_mat, neg_pivot_mat;
-	
+
 		Vector3 pos = ptrack(time);
 		Quaternion rot = rtrack(time);
 		Vector3 scale = strack(time);
@@ -363,13 +363,13 @@ Matrix4x4 xform_node::get_xform_matrix(int time) const
 	return cache_matrix;
 }
 
-Matrix4x4 xform_node::get_inv_xform_matrix(int time) const
+Matrix4x4 XFormNode::get_inv_xform_matrix(int time) const
 {
 	get_xform_matrix(time);	// calculate invxform if needed
 	return cache_matrix.inverse();//cache_inv_matrix;
 }
 
-Matrix3x3 xform_node::get_rot_matrix(int time) const
+Matrix3x3 XFormNode::get_rot_matrix(int time) const
 {
 	Quaternion rot = get_rotation(time);
 	return rot.get_rotation_matrix();

@@ -8,38 +8,38 @@
 
 namespace henge {
 
-class robject : public xform_node {
+class RObject : public XFormNode {
 protected:
-	trimesh mesh;
-	material mat;
+	TriMesh mesh;
+	Material mat;
 
-	mutable aabox bbox;
-	mutable bsphere bsph;
+	mutable AABox bbox;
+	mutable BSphere bsph;
 
 	// custom rendering function
-	void (*custom_render)(const robject*, unsigned int, void*);
+	void (*custom_render)(const RObject*, unsigned int, void*);
 	void *cust_rend_cls;
 
 public:
 
-	robject();
-	virtual ~robject();
+	RObject();
+	virtual ~RObject();
 
-	virtual robject *clone() const;
+	virtual RObject *clone() const;
 
 	void apply_xform(int time = 0);
 
-	void set_material(const material &mat);
-	const material &get_material() const;
-	material *get_material_ptr();
+	void set_material(const Material &mat);
+	const Material &get_material() const;
+	Material *get_material_ptr();
 
-	trimesh *get_mesh();
-	const trimesh *get_mesh() const;
+	TriMesh *get_mesh();
+	const TriMesh *get_mesh() const;
 
-	aabox *get_aabox() const;
-	bsphere *get_bsphere() const;
+	AABox *get_aabox() const;
+	BSphere *get_bsphere() const;
 
-	void set_render_func(void (*func)(const robject*, unsigned int, void*), void *cls);
+	void set_render_func(void (*func)(const RObject*, unsigned int, void*), void *cls);
 
 	void render(unsigned int msec = 0) const;
 
@@ -48,7 +48,7 @@ public:
 	void draw_tangents(float size = 1.0f, unsigned int msec = 0) const;
 
 	// Z-sorting comparison operator
-	bool operator <(const robject &rhs) const;
+	bool operator <(const RObject &rhs) const;
 };
 
 }	// namespace henge

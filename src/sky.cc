@@ -8,15 +8,15 @@
 
 using namespace henge;
 
-static texture *create_perm_texture();
-static texture *perm_tex;
+static Texture *create_perm_texture();
+static Texture *perm_tex;
 
-static bool layer_cmp(const sky_layer *a, const sky_layer *b)
+static bool layer_cmp(const SkyLayer *a, const SkyLayer *b)
 {
 	return a->get_radius() > b->get_radius();
 }
 
-skydome::skydome()
+SkyDome::SkyDome()
 {
 	sun_tex = moon_tex = 0;
 
@@ -27,14 +27,14 @@ skydome::skydome()
 	moon_size = 10.0f;
 }
 
-skydome::~skydome()
+SkyDome::~SkyDome()
 {
 	for(size_t i=0; i<layers.size(); i++) {
 		delete layers[i];
 	}
 }
 
-bool skydome::add_layer(sky_layer *layer)
+bool SkyDome::add_layer(SkyLayer *layer)
 {
 	try {
 		layers.push_back(layer);
@@ -46,37 +46,37 @@ bool skydome::add_layer(sky_layer *layer)
 	return true;
 }
 
-void skydome::set_sun_tex(texture *tex)
+void SkyDome::set_sun_tex(Texture *tex)
 {
 	sun_tex = tex;
 }
 
-void skydome::set_moon_tex(texture *tex)
+void SkyDome::set_moon_tex(Texture *tex)
 {
 	moon_tex = tex;
 }
 
-void skydome::set_sun_pos(const SphVector &svec)
+void SkyDome::set_sun_pos(const SphVector &svec)
 {
 	sun_pos = svec;
 }
 
-void skydome::set_moon_pos(const SphVector &svec)
+void SkyDome::set_moon_pos(const SphVector &svec)
 {
 	moon_pos = svec;
 }
 
-void skydome::set_sun_size(float sz)
+void SkyDome::set_sun_size(float sz)
 {
 	sun_size = sz;
 }
 
-void skydome::set_moon_size(float sz)
+void SkyDome::set_moon_size(float sz)
 {
 	moon_size = sz;
 }
 
-void skydome::draw(unsigned int msec) const
+void SkyDome::draw(unsigned int msec) const
 {
 	bool drawn_sun = false, drawn_moon = false;
 
@@ -102,7 +102,7 @@ void skydome::draw(unsigned int msec) const
 	}
 }
 
-void skydome::draw_sun() const
+void SkyDome::draw_sun() const
 {
 	if(!sun_tex) return;
 
@@ -113,12 +113,12 @@ void skydome::draw_sun() const
 	glBlendFunc(GL_ONE, GL_ONE);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	draw_point(Vector3(sun_pos), color(1, 1, 1, 1), sun_size);
+	draw_point(Vector3(sun_pos), Color(1, 1, 1, 1), sun_size);
 
 	glPopAttrib();
 }
 
-void skydome::draw_moon() const
+void SkyDome::draw_moon() const
 {
 	if(!moon_tex) return;
 
@@ -128,65 +128,65 @@ void skydome::draw_moon() const
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	draw_point(Vector3(moon_pos), color(1, 1, 1, 1), moon_size);
+	draw_point(Vector3(moon_pos), Color(1, 1, 1, 1), moon_size);
 
 	glPopAttrib();
 }
 
-// -- skydome layers base class (abstract)
-sky_layer::sky_layer(float rad)
+// -- SkyDome layers base class (abstract)
+SkyLayer::SkyLayer(float rad)
 {
 	radius = rad;
-	col = color(1, 1, 1, 1);
+	col = Color(1, 1, 1, 1);
 	enabled = true;
 
-	dome = new robject;
-	dome->get_material_ptr()->set_color(color(1, 1, 1, 1));
+	dome = new RObject;
+	dome->get_material_ptr()->set_color(Color(1, 1, 1, 1));
 	gen_sphere(dome->get_mesh(), 1.0, 40, 10, 1, 0.2, TC_MAP_XZ);
 }
 
-sky_layer::~sky_layer()
+SkyLayer::~SkyLayer()
 {
 	delete dome;
 	delete mat;
 }
 
-void sky_layer::enable()
+void SkyLayer::enable()
 {
 	enabled = true;
 }
 
-void sky_layer::disable()
+void SkyLayer::disable()
 {
 	enabled = false;
 }
 
-bool sky_layer::is_enabled() const
+bool SkyLayer::is_enabled() const
 {
 	return enabled;
 }
 
-void sky_layer::set_radius(float rad)
+void SkyLayer::set_radius(float rad)
 {
 	radius = rad;
 }
 
-float sky_layer::get_radius() const
+float SkyLayer::get_radius() const
 {
 	return radius;
 }
 
-void sky_layer::set_color(const henge::color &col)
+void SkyLayer::set_color(const henge::Color &col)
 {
 	this->col = col;
 }
 
-const henge::color &sky_layer::get_color() const
+const henge::Color &SkyLayer::get_color() const
 {
 	return col;
 }
 
-void sky_layer::draw(unsigned int msec) const
+void SkyLayer::draw(unsigned int msec) const
 {
 	glPushAttrib(GL_ENABLE_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_LIGHTING);
@@ -209,36 +209,36 @@ void sky_layer::draw(unsigned int msec) const
 	glPopAttrib();
 }
 
-// -- gradient skydome layer
-sky_layer_grad::sky_layer_grad(float rad)
-	: sky_layer(rad)
+// -- gradient SkyDome layer
+SkyLayerGrad::SkyLayerGrad(float rad)
+	: SkyLayer(rad)
 {
 	def_grad = true;
-	grad.set_color(0, color(0.55f, 0.55f, 0.6f, 1));
-	grad.set_color(0.2f, color(0.4f, 0.5f, 0.7f, 1));
-	grad.set_color(1.0f, color(0.2f, 0.2f, 0.9f, 1));
+	grad.set_color(0, Color(0.55f, 0.55f, 0.6f, 1));
+	grad.set_color(0.2f, Color(0.4f, 0.5f, 0.7f, 1));
+	grad.set_color(1.0f, Color(0.2f, 0.2f, 0.9f, 1));
 
 	gen_sphere(dome->get_mesh(), 1.0, 40, 10, 1, 0.2, TC_MAP_XY);
 }
 
-sky_layer_grad::sky_layer_grad(const color_gradient &grad)
+SkyLayerGrad::SkyLayerGrad(const ColorGradient &grad)
 {
 	this->grad = grad;
 }
 
-sky_layer_grad::~sky_layer_grad() {}
+SkyLayerGrad::~SkyLayerGrad() {}
 
-bool sky_layer_grad::load_grad(const char *fname)
+bool SkyLayerGrad::load_grad(const char *fname)
 {
 	return grad.load(fname);
 }
 
-bool sky_layer_grad::save_grad(const char *fname)
+bool SkyLayerGrad::save_grad(const char *fname)
 {
 	return grad.save(fname);
 }
 
-void sky_layer_grad::set_grad_color(float t, const color &col)
+void SkyLayerGrad::set_grad_color(float t, const Color &col)
 {
 	if(def_grad) {
 		grad.clear();
@@ -247,9 +247,9 @@ void sky_layer_grad::set_grad_color(float t, const color &col)
 	grad.set_color(t, col);
 }
 
-void sky_layer_grad::draw(unsigned int msec) const
+void SkyLayerGrad::draw(unsigned int msec) const
 {
-	texture *tex = grad.ramp_map();
+	Texture *tex = grad.ramp_map();
 	tex->set_wrap(GL_CLAMP_TO_EDGE);
 	dome->get_material_ptr()->set_texture(tex);
 
@@ -261,52 +261,52 @@ void sky_layer_grad::draw(unsigned int msec) const
 	glTranslatef(-0.5, -0.5, 0);
 	glScalef(5, 5, 1);
 
-	sky_layer::draw(msec);
+	SkyLayer::draw(msec);
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 }
 
-// -- clouds skydome layer
-sky_layer_clouds::sky_layer_clouds(float rad)
-	: sky_layer(rad)
+// -- clouds SkyDome layer
+SkyLayerClouds::SkyLayerClouds(float rad)
+	: SkyLayer(rad)
 {
 	scale = Vector2(0.6f, 0.6f);
 	velocity = Vector2(0, 0);
 }
 
-sky_layer_clouds::~sky_layer_clouds() {}
+SkyLayerClouds::~SkyLayerClouds() {}
 
-void sky_layer_clouds::set_scale(float scale)
+void SkyLayerClouds::set_scale(float scale)
 {
 	this->scale.x = this->scale.y = this->scale.z = scale;
 }
 
-void sky_layer_clouds::set_scale(const Vector3 &scale)
+void SkyLayerClouds::set_scale(const Vector3 &scale)
 {
 	this->scale = scale;
 }
 
-void sky_layer_clouds::set_velocity(const Vector2 &vel)
+void SkyLayerClouds::set_velocity(const Vector2 &vel)
 {
 	velocity = vel;
 }
 
-// -- clouds on a texture skydome layer
-sky_layer_clouds_tex::sky_layer_clouds_tex(float rad, texture *tex)
-	: sky_layer_clouds(rad)
+// -- clouds on a texture SkyDome layer
+SkyLayerCloudsTex::SkyLayerCloudsTex(float rad, Texture *tex)
+	: SkyLayerClouds(rad)
 {
 	dome->get_material_ptr()->set_texture(tex);
 }
 
-sky_layer_clouds_tex::~sky_layer_clouds_tex() {}
+SkyLayerCloudsTex::~SkyLayerCloudsTex() {}
 
-void sky_layer_clouds_tex::set_texture(texture *tex)
+void SkyLayerCloudsTex::set_texture(Texture *tex)
 {
 	dome->get_material_ptr()->set_texture(tex);
 }
 
-void sky_layer_clouds_tex::draw(unsigned int msec) const
+void SkyLayerCloudsTex::draw(unsigned int msec) const
 {
 	float sec = (float)msec / 1000.0f;
 
@@ -316,15 +316,15 @@ void sky_layer_clouds_tex::draw(unsigned int msec) const
 	glTranslatef(sec * velocity.x, sec * velocity.y, 0);
 	glScalef(scale.x, scale.y, 1);
 
-	sky_layer::draw(msec);
+	SkyLayer::draw(msec);
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
 }
 
-// procedural clouds skydome layer
-sky_layer_clouds_sdr::sky_layer_clouds_sdr(float rad, shader *sdr)
-	: sky_layer_clouds(rad)
+// procedural clouds SkyDome layer
+SkyLayerCloudsSdr::SkyLayerCloudsSdr(float rad, Shader *sdr)
+	: SkyLayerClouds(rad)
 {
 	coverage = 0.6f;
 	sharpness = 0.7f;
@@ -336,7 +336,7 @@ sky_layer_clouds_sdr::sky_layer_clouds_sdr(float rad, shader *sdr)
 	dome->get_material_ptr()->set_texture(perm_tex);
 
 	if(!sdr) {	// load default shaders
-		shader *s = new shader;
+		Shader *s = new Shader;
 		if(!s->compile_shader(def_clouds_vs, SDR_VERTEX, "default clouds vertex shader") ||
 				!s->compile_shader(def_clouds_ps, SDR_PIXEL, "default clouds pixel shader")) {
 			delete s;
@@ -348,33 +348,33 @@ sky_layer_clouds_sdr::sky_layer_clouds_sdr(float rad, shader *sdr)
 	}
 }
 
-sky_layer_clouds_sdr::~sky_layer_clouds_sdr() {}
+SkyLayerCloudsSdr::~SkyLayerCloudsSdr() {}
 
-void sky_layer_clouds_sdr::set_shader(shader *sdr)
+void SkyLayerCloudsSdr::set_shader(Shader *sdr)
 {
 	dome->get_material_ptr()->set_shader(sdr);
 }
 
-void sky_layer_clouds_sdr::set_anim_speed(float s)
+void SkyLayerCloudsSdr::set_anim_speed(float s)
 {
 	anim_speed = s;
 }
 
-void sky_layer_clouds_sdr::set_coverage(float cov)
+void SkyLayerCloudsSdr::set_coverage(float cov)
 {
 	coverage = cov;
 }
 
-void sky_layer_clouds_sdr::set_sharpness(float shrp)
+void SkyLayerCloudsSdr::set_sharpness(float shrp)
 {
 	sharpness = shrp;
 }
 
-void sky_layer_clouds_sdr::draw(unsigned int msec) const
+void SkyLayerCloudsSdr::draw(unsigned int msec) const
 {
 	float sec = (float)msec / 1000.0f;
 
-	shader *sdr = dome->get_material_ptr()->get_shader();
+	Shader *sdr = dome->get_material_ptr()->get_shader();
 	if(sdr) {
 		sdr->set_uniform("pixw", 1.0 / (float)perm_tex->get_width());
 		sdr->set_uniform("halfpixw", 0.5 / (float)perm_tex->get_width());
@@ -388,7 +388,7 @@ void sky_layer_clouds_sdr::draw(unsigned int msec) const
 	glTranslatef(sec * velocity.x, sec * velocity.y, sec * anim_speed);
 	glScalef(scale.x, scale.y, scale.z);
 
-	sky_layer::draw(msec);
+	SkyLayer::draw(msec);
 
 	glMatrixMode(GL_TEXTURE);
 	glPopMatrix();
@@ -421,9 +421,9 @@ static int grad3[16][3] = {
 	{1,0,-1},{-1,0,-1},{0,-1,1},{0,1,1}
 };
 
-static texture *create_perm_texture()
+static Texture *create_perm_texture()
 {
-	pixmap img;
+	henge::Pixmap img;
 	img.set_pixels(256, 256);
 
 	unsigned char *pixels = (unsigned char*)img.pixels;
@@ -439,7 +439,7 @@ static texture *create_perm_texture()
 		}
 	}
 
-	texture_2d *tex = new texture_2d;
+	Texture2D *tex = new Texture2D;
 	tex->set_image(img);
 	tex->set_wrap(GL_REPEAT);
 	tex->set_filter(GL_NEAREST, GL_NEAREST);

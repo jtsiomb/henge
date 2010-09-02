@@ -12,7 +12,7 @@ static bool is_bool(const char *str);
 static bool parse_vector(const char *str, Vector4 *vec);
 
 
-config_value::config_value()
+ConfigValue::ConfigValue()
 {
 	type = CVAL_INVALID;
 	val = 0.0f;
@@ -20,7 +20,7 @@ config_value::config_value()
 }
 
 
-bool config_file::read(const char *fname)
+bool ConfigFile::read(const char *fname)
 {
 	ifstream file(fname);
 	if(!file.is_open()) {
@@ -67,7 +67,7 @@ bool config_file::read(const char *fname)
 		}
 		rhs = ptr;	// right hand side...
 
-		config_value v;
+		ConfigValue v;
 		v.str = rhs;
 
 		if(parse_vector(rhs, &v.vec)) {
@@ -88,39 +88,39 @@ bool config_file::read(const char *fname)
 }
 
 
-void config_file::setopt(const char *name, float val)
+void ConfigFile::setopt(const char *name, float val)
 {
 	options[name].type = CVAL_SCALAR;
 	options[name].val = val;
 }
 
-void config_file::setopt(const char *name, const Vector4 &vec)
+void ConfigFile::setopt(const char *name, const Vector4 &vec)
 {
 	options[name].type = CVAL_VECTOR;
 	options[name].vec = vec;
 }
 
-void config_file::setopt(const char *name, const char *str)
+void ConfigFile::setopt(const char *name, const char *str)
 {
 	options[name].type = CVAL_STRING;
 	options[name].str = str;
 }
 
-void config_file::setopt(const char *name, bool val)
+void ConfigFile::setopt(const char *name, bool val)
 {
 	options[name].type = CVAL_BOOL;
 	options[name].bval = val;
 }
 
 
-bool config_file::getopt(const char *name, float *val) const
+bool ConfigFile::getopt(const char *name, float *val) const
 {
-	map<string, config_value>::const_iterator iter = options.find(name);
+	map<string, ConfigValue>::const_iterator iter = options.find(name);
 	if(iter == options.end()) {
 		return false;
 	}
-	
-	config_value_type type = iter->second.type;
+
+	ConfigValueType type = iter->second.type;
 
 	switch(type) {
 	case CVAL_SCALAR:
@@ -141,14 +141,14 @@ bool config_file::getopt(const char *name, float *val) const
 	return true;
 }
 
-bool config_file::getopt(const char *name, Vector4 *vec) const
+bool ConfigFile::getopt(const char *name, Vector4 *vec) const
 {
-	map<string, config_value>::const_iterator iter = options.find(name);
+	map<string, ConfigValue>::const_iterator iter = options.find(name);
 	if(iter == options.end()) {
 		return false;
 	}
-	
-	config_value_type type = iter->second.type;
+
+	ConfigValueType type = iter->second.type;
 
 	switch(type) {
 	case CVAL_SCALAR:
@@ -169,37 +169,37 @@ bool config_file::getopt(const char *name, Vector4 *vec) const
 	return true;
 }
 
-bool config_file::getopt(const char *name, char **str) const
+bool ConfigFile::getopt(const char *name, char **str) const
 {
-	map<string, config_value>::const_iterator iter = options.find(name);
+	map<string, ConfigValue>::const_iterator iter = options.find(name);
 	if(iter == options.end()) {
 		return false;
 	}
-	
+
 	*str = (char*)iter->second.str.c_str();
 	return true;
 }
 
-bool config_file::getopt(const char *name, std::string *str) const
+bool ConfigFile::getopt(const char *name, std::string *str) const
 {
-	map<string, config_value>::const_iterator iter = options.find(name);
+	map<string, ConfigValue>::const_iterator iter = options.find(name);
 	if(iter == options.end()) {
 		return false;
 	}
-	
+
 	*str = iter->second.str.c_str();
 	return true;
 
 }
 
-bool config_file::getopt(const char *name, bool *val) const
+bool ConfigFile::getopt(const char *name, bool *val) const
 {
-	map<string, config_value>::const_iterator iter = options.find(name);
+	map<string, ConfigValue>::const_iterator iter = options.find(name);
 	if(iter == options.end()) {
 		return false;
 	}
 
-	config_value_type type = iter->second.type;
+	ConfigValueType type = iter->second.type;
 
 	switch(type) {
 	case CVAL_SCALAR:
@@ -220,7 +220,7 @@ bool config_file::getopt(const char *name, bool *val) const
 	return true;
 }
 
-bool config_file::getopt_int(const char *name, int *val) const
+bool ConfigFile::getopt_int(const char *name, int *val) const
 {
 	float tmp;
 	if(getopt(name, &tmp)) {

@@ -2,33 +2,33 @@
 
 using namespace henge;
 
-bvolume::~bvolume() {}
+BVolume::~BVolume() {}
 
-bsphere::bsphere()
+BSphere::BSphere()
 {
 	radius = 0.0;
 }
 
-bsphere::bsphere(const Vector3 &center, float radius)
+BSphere::BSphere(const Vector3 &center, float radius)
 {
 	this->center = center;
 	this->radius = radius;
 }
 
-bsphere::~bsphere() {}
+BSphere::~BSphere() {}
 
-bool bsphere::contains(const Vector3 &pt) const
+bool BSphere::contains(const Vector3 &pt) const
 {
 	return (pt - center).length_sq() < radius * radius;
 }
 
-bool bsphere::intersect(const Ray &ray) const
+bool BSphere::intersect(const Ray &ray) const
 {
 	float a = dot_product(ray.dir, ray.dir);
 	float b = 2 * ray.dir.x * (ray.origin.x - center.x) +
 		2 * ray.dir.y * (ray.origin.y - center.y) +
 		2 * ray.dir.z * (ray.origin.z - center.z);
-	float c = dot_product(center, center) + dot_product(ray.origin, ray.origin) + 
+	float c = dot_product(center, center) + dot_product(ray.origin, ray.origin) +
 		2 * dot_product(-center, ray.origin) - radius * radius;
 
 	float discr = (b * b - 4.0 * a * c);
@@ -51,17 +51,17 @@ bool bsphere::intersect(const Ray &ray) const
 }
 
 
-aabox::aabox() {}
+AABox::AABox() {}
 
-aabox::aabox(const Vector3 &min, const Vector3 &max)
+AABox::AABox(const Vector3 &min, const Vector3 &max)
 {
 	this->min = min;
 	this->max = max;
 }
 
-aabox::~aabox() {}
+AABox::~AABox() {}
 
-bool aabox::contains(const Vector3 &pt) const
+bool AABox::contains(const Vector3 &pt) const
 {
 	return pt.x >= min.x && pt.y >= min.y && pt.z >= min.z &&
 		pt.x < max.x && pt.y < max.y && pt.z < max.z;
@@ -72,7 +72,7 @@ bool aabox::contains(const Vector3 &pt) const
  * Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley
  * Journal of graphics tools, 10(1):49-54, 2005
  */
-bool aabox::intersect(const Ray &ray) const
+bool AABox::intersect(const Ray &ray) const
 {
 	Vector3 bbox[2] = {min, max};
 	static const float t0 = 0.0;

@@ -3,15 +3,15 @@
 #include <errno.h>
 #include "int_types.h"
 #include "pixmap.h"
-#include "image.h"
-#include "image/util.h"
+#include "imago2.h"
+#include "imgutil.h"
 #include "errlog.h"
 
 using namespace henge;
 
-static int pixel_size(pixmap_format fmt);
+static int pixel_size(PixmapFormat fmt);
 
-pixmap::pixmap()
+Pixmap::Pixmap()
 {
 	manage_pixels = false;
 	pixels = 0;
@@ -20,14 +20,14 @@ pixmap::pixmap()
 	bytes_per_pixel = 4;
 }
 
-pixmap::~pixmap()
+Pixmap::~Pixmap()
 {
 	if(manage_pixels) {
 		free(pixels);
 	}
 }
 
-bool pixmap::set_pixels(int xsz, int ysz, pixmap_format fmt, void *pixels)
+bool Pixmap::set_pixels(int xsz, int ysz, PixmapFormat fmt, void *pixels)
 {
 	void *tmp;
 	if(!(tmp = malloc(xsz * ysz * pixel_size(fmt)))) {
@@ -51,19 +51,15 @@ bool pixmap::set_pixels(int xsz, int ysz, pixmap_format fmt, void *pixels)
 	return true;
 }
 
-bool pixmap::load(const char *name)
+bool Pixmap::load(const char *name)
 {
 	void *img;
 	int img_xsz, img_ysz;
 
-	int prev_imgopt = get_image_option(IMG_OPT_FLOAT);
-	set_image_option(IMG_OPT_FLOAT, fmt == PIX_FLOAT);
-
-	if(!(img = (void*)load_image(name, &img_xsz, &img_ysz))) {
-		set_image_option(IMG_OPT_FLOAT, prev_imgopt);
+	enum img_fmt ifmt = this->fmt == PIX_FLOAT ? IMG_FMT_RGBAF : IMG_FMT_RGBA32;
+	if(!(img = (void*)img_load_pixels(name, &img_xsz, &img_ysz, ifmt))) {
 		return false;
 	}
-	set_image_option(IMG_OPT_FLOAT, prev_imgopt);
 
 	if(manage_pixels) {
 		free(pixels);
@@ -77,17 +73,17 @@ bool pixmap::load(const char *name)
 	return true;
 }
 
-bool pixmap::save(const char *name)
+bool Pixmap::save(const char *name)
 {
 	return false; // TODO
 }
 
-bool pixmap::generate(const char *expr)
+bool Pixmap::generate(const char *expr)
 {
 	return false;	// TODO
 }
 
-bool pixmap::is_transparent() const
+bool Pixmap::is_transparent() const
 {
 	int i, j;
 	float *fpix = 0;
@@ -121,7 +117,7 @@ bool pixmap::is_transparent() const
 
 #define CONVERSION(a, b)	(((int)(a) << 8) | (int)(b))
 
-void henge::convert_pixmap(pixmap *pix, pixmap_format tofmt)
+void henge::convert_pixmap(Pixmap *pix, PixmapFormat tofmt)
 {
 	float *fpix;
 	uint32_t *ipix;
@@ -167,7 +163,7 @@ void henge::convert_pixmap(pixmap *pix, pixmap_format tofmt)
 	}
 }
 
-void henge::copy_pixels(pixmap *dest, pixmap *src)
+void henge::copy_pixels(Pixmap *dest, Pixmap *src)
 {
 	copy_pixels(dest, 0, 0, src, 0, 0, src->xsz, src->ysz);
 }
@@ -175,7 +171,7 @@ void henge::copy_pixels(pixmap *dest, pixmap *src)
 #define MIN(a, b)	((a) < (b) ? (a) : (b))
 
 // TODO make negative destx/desty and sx/sy work too
-void henge::copy_pixels(pixmap *dest, int destx, int desty, pixmap *src, int sx, int sy, int width, int height)
+void henge::copy_pixels(Pixmap *dest, int destx, int desty, Pixmap *src, int sx, int sy, int width, int height)
 {
 	if(dest->fmt != src->fmt) {
 		error("can't copy_pixels between pixmaps with different formats\n");
@@ -203,7 +199,7 @@ void henge::copy_pixels(pixmap *dest, int destx, int desty, pixmap *src, int sx,
 	}
 }
 
-void henge::rotate_pixmap(pixmap *pix, int deg)
+void henge::rotate_pixmap(Pixmap *pix, int deg)
 {
 	switch(deg) {
 	case 180:
@@ -217,7 +213,7 @@ void henge::rotate_pixmap(pixmap *pix, int deg)
 	}
 }
 
-void henge::mirror_pixmap(pixmap *pix)
+void henge::mirror_pixmap(Pixmap *pix)
 {
 	unsigned char *start, *front, *back;
 
@@ -240,7 +236,7 @@ void henge::mirror_pixmap(pixmap *pix)
 	}
 }
 
-void henge::flip_pixmap(pixmap *pix)
+void henge::flip_pixmap(Pixmap *pix)
 {
 	void *buf = alloca(pix->xsz * pix->bytes_per_pixel);
 
@@ -258,7 +254,7 @@ void henge::flip_pixmap(pixmap *pix)
 	}
 }
 
-static int pixel_size(pixmap_format fmt)
+static int pixel_size(PixmapFormat fmt)
 {
 	switch(fmt) {
 	case PIX_RGBA32:

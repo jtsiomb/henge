@@ -4,15 +4,15 @@
 #include "sdr.h"
 #include "errlog.h"
 
-enum uniform_type {
+enum UniformType {
 	UNI_INT,
 	UNI_FLT,
 	UNI_VEC,
 	UNI_MAT
 };
 
-struct uniform {
-	uniform_type type;
+struct Uniform {
+	UniformType type;
 
 	int ival;
 	float fval;
@@ -23,7 +23,7 @@ struct uniform {
 using namespace std;
 using namespace henge;
 
-static map<string, uniform> uni_cache;
+static map<string, Uniform> uni_cache;
 
 void henge::init_uniform_cache()
 {
@@ -59,7 +59,7 @@ void henge::init_uniform_cache()
 
 void henge::cache_uniform(const char *name, int val)
 {
-	uniform v;
+	Uniform v;
 	v.type = UNI_INT;
 	v.ival = val;
 	uni_cache[name] = v;
@@ -67,7 +67,7 @@ void henge::cache_uniform(const char *name, int val)
 
 void henge::cache_uniform(const char *name, float val)
 {
-	uniform v;
+	Uniform v;
 	v.type = UNI_FLT;
 	v.fval = val;
 	uni_cache[name] = v;
@@ -75,7 +75,7 @@ void henge::cache_uniform(const char *name, float val)
 
 void henge::cache_uniform(const char *name, const Vector4 &vec)
 {
-	uniform v;
+	Uniform v;
 	v.type = UNI_VEC;
 	v.vec = vec;
 	uni_cache[name] = v;
@@ -83,7 +83,7 @@ void henge::cache_uniform(const char *name, const Vector4 &vec)
 
 void henge::cache_uniform(const char *name, const Matrix4x4 &mat)
 {
-	uniform v;
+	Uniform v;
 	v.type = UNI_MAT;
 	v.mat = mat;
 	uni_cache[name] = v;
@@ -91,18 +91,18 @@ void henge::cache_uniform(const char *name, const Matrix4x4 &mat)
 
 bool henge::is_cached_uniform(const char *name)
 {
-	map<string, uniform>::iterator iter = uni_cache.find(name);
+	map<string, Uniform>::iterator iter = uni_cache.find(name);
 	return iter != uni_cache.end();
 }
 
-bool henge::bind_cached_uniform(const char *name, const shader *sdr)
+bool henge::bind_cached_uniform(const char *name, const Shader *sdr)
 {
-	map<string, uniform>::iterator iter = uni_cache.find(name);
+	map<string, Uniform>::iterator iter = uni_cache.find(name);
 	if(iter == uni_cache.end()) {
 		return false;
 	}
 
-	uniform v = iter->second;
+	Uniform v = iter->second;
 	switch(v.type) {
 	case UNI_INT:
 		//info("%s = %d\n", name, v.ival);

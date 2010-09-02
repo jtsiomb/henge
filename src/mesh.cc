@@ -18,18 +18,18 @@
 
 using namespace henge;
 
-trimesh::trimesh()
+TriMesh::TriMesh()
 {
 	init();
 }
 
-trimesh::trimesh(const trimesh &m)
+TriMesh::TriMesh(const TriMesh &m)
 {
 	init();
 	*this = m;
 }
 
-void trimesh::init()
+void TriMesh::init()
 {
 	vert = norm = tang = 0;
 	tc = 0;
@@ -41,7 +41,7 @@ void trimesh::init()
 	dlist = 0;
 
 	memset(vbo, 0, EL_COUNT * sizeof *vbo);
-	
+
 	if(caps.vbo) {
 		glGenBuffersARB(EL_COUNT, vbo);
 		memset(vbo_valid, 0, EL_COUNT * sizeof *vbo_valid);
@@ -52,7 +52,7 @@ void trimesh::init()
 }
 
 #define ELEM_BIT(x)		(1 << x)
-void trimesh::invalidate(int elmask)
+void TriMesh::invalidate(int elmask)
 {
 	if(dlist) {
 		glDeleteLists(dlist, 1);
@@ -66,7 +66,7 @@ void trimesh::invalidate(int elmask)
 	}
 }
 
-trimesh &trimesh::operator =(const trimesh &m)
+TriMesh &TriMesh::operator =(const TriMesh &m)
 {
 	if(this == &m) {
 		return *this;
@@ -109,7 +109,7 @@ trimesh &trimesh::operator =(const trimesh &m)
 	return *this;
 }
 
-trimesh::~trimesh()
+TriMesh::~TriMesh()
 {
 	delete [] vert;
 	delete [] norm;
@@ -127,17 +127,17 @@ trimesh::~trimesh()
 	}
 }
 
-void trimesh::set_dynamic(bool dynamic)
+void TriMesh::set_dynamic(bool dynamic)
 {
 	this->dynamic = dynamic;
 }
 
-bool trimesh::get_dynamic() const
+bool TriMesh::get_dynamic() const
 {
 	return dynamic;
 }
 
-bool trimesh::merge(const trimesh &mesh)
+bool TriMesh::merge(const TriMesh &mesh)
 {
 	int vidx_offs = 0;
 
@@ -232,7 +232,7 @@ bool trimesh::merge(const trimesh &mesh)
 	return true;
 }
 
-bool trimesh::set_data(int elem, const Vector4 *data, int count)
+bool TriMesh::set_data(int elem, const Vector4 *data, int count)
 {
 	if(elem != EL_COLOR) {
 		return false;
@@ -257,7 +257,7 @@ bool trimesh::set_data(int elem, const Vector4 *data, int count)
 	return true;
 }
 
-bool trimesh::set_data(int elem, const Vector3 *data, int count)
+bool TriMesh::set_data(int elem, const Vector3 *data, int count)
 {
 	Vector3 *varr;
 	try {
@@ -292,7 +292,7 @@ bool trimesh::set_data(int elem, const Vector3 *data, int count)
 		delete [] varr;
 		return false;
 	}
-	
+
 	if(data) {
 		memcpy(varr, data, count * sizeof *varr);
 	}
@@ -301,7 +301,7 @@ bool trimesh::set_data(int elem, const Vector3 *data, int count)
 	return true;
 }
 
-bool trimesh::set_data(int elem, const Vector2 *data, int count)
+bool TriMesh::set_data(int elem, const Vector2 *data, int count)
 {
 	if(elem != EL_TEXCOORD) {
 		return false;
@@ -325,7 +325,7 @@ bool trimesh::set_data(int elem, const Vector2 *data, int count)
 	return true;
 }
 
-bool trimesh::set_data(int elem, const unsigned int *data, int count)
+bool TriMesh::set_data(int elem, const unsigned int *data, int count)
 {
 	if(elem != EL_INDEX) {
 		return false;
@@ -351,7 +351,7 @@ bool trimesh::set_data(int elem, const unsigned int *data, int count)
 	return true;
 }
 
-Vector4 *trimesh::get_data_vec4(int elem)
+Vector4 *TriMesh::get_data_vec4(int elem)
 {
 	if(elem == EL_COLOR) {
 		if(col) {
@@ -362,7 +362,7 @@ Vector4 *trimesh::get_data_vec4(int elem)
 	return 0;
 }
 
-const Vector4 *trimesh::get_data_vec4(int elem) const
+const Vector4 *TriMesh::get_data_vec4(int elem) const
 {
 	if(elem == EL_COLOR) {
 		return col;
@@ -370,7 +370,7 @@ const Vector4 *trimesh::get_data_vec4(int elem) const
 	return 0;
 }
 
-Vector3 *trimesh::get_data_vec3(int elem)
+Vector3 *TriMesh::get_data_vec3(int elem)
 {
 	switch(elem) {
 	case EL_VERTEX:
@@ -398,7 +398,7 @@ Vector3 *trimesh::get_data_vec3(int elem)
 	return 0;
 }
 
-const Vector3 *trimesh::get_data_vec3(int elem) const
+const Vector3 *TriMesh::get_data_vec3(int elem) const
 {
 	switch(elem) {
 	case EL_VERTEX:
@@ -416,7 +416,7 @@ const Vector3 *trimesh::get_data_vec3(int elem) const
 	return 0;
 }
 
-Vector2 *trimesh::get_data_vec2(int elem)
+Vector2 *TriMesh::get_data_vec2(int elem)
 {
 	if(elem == EL_TEXCOORD) {
 		if(tc) {
@@ -427,7 +427,7 @@ Vector2 *trimesh::get_data_vec2(int elem)
 	return 0;
 }
 
-const Vector2 *trimesh::get_data_vec2(int elem) const
+const Vector2 *TriMesh::get_data_vec2(int elem) const
 {
 	if(elem == EL_TEXCOORD) {
 		return tc;
@@ -435,7 +435,7 @@ const Vector2 *trimesh::get_data_vec2(int elem) const
 	return 0;
 }
 
-unsigned int *trimesh::get_data_int(int elem)
+unsigned int *TriMesh::get_data_int(int elem)
 {
 	if(elem == EL_INDEX) {
 		if(index) {
@@ -447,7 +447,7 @@ unsigned int *trimesh::get_data_int(int elem)
 	return 0;
 }
 
-const unsigned int *trimesh::get_data_int(int elem) const
+const unsigned int *TriMesh::get_data_int(int elem) const
 {
 	if(elem == EL_INDEX) {
 		return index;
@@ -455,7 +455,7 @@ const unsigned int *trimesh::get_data_int(int elem) const
 	return 0;
 }
 
-int trimesh::get_count(int elem) const
+int TriMesh::get_count(int elem) const
 {
 	switch(elem) {
 	case EL_VERTEX:
@@ -480,23 +480,23 @@ int trimesh::get_count(int elem) const
 }
 
 
-void trimesh::build_kdtree()
+void TriMesh::build_kdtree()
 {
 	kdt.clear();
 
 	for(int i=0; i<nvert; i++) {
-		// XXX last argument is triangle index... won't work for indexed triangles
+		// XXX last argument is Triangle index... won't work for indexed Triangles
 		kdt.insert(vert[i].x, vert[i].y, vert[i].z, i / 3);
 	}
 	kdt_valid = true;
 }
 
-void trimesh::calc_normals()
+void TriMesh::calc_normals()
 {
 	// TODO implement
 }
 
-void trimesh::indexify(float threshold)
+void TriMesh::indexify(float threshold)
 {
 	/*if(index) return;	// already indexed
 
@@ -518,7 +518,7 @@ void trimesh::indexify(float threshold)
 	} while(0)
 
 
-void trimesh::flip_winding()
+void TriMesh::flip_winding()
 {
 	if(index) {
 		for(int i=0; i<nindex; i++) {
@@ -558,7 +558,7 @@ void trimesh::flip_winding()
 	}
 }
 
-void trimesh::flip_normals()
+void TriMesh::flip_normals()
 {
 	for(int i=0; i<nvert; i++) {
 		norm[i] = -norm[i];
@@ -566,7 +566,7 @@ void trimesh::flip_normals()
 	invalidate(ELEM_BIT(EL_NORMAL));
 }
 
-void trimesh::transform(const Matrix4x4 &mat)
+void TriMesh::transform(const Matrix4x4 &mat)
 {
 	Matrix4x4 norm_mat;
 
@@ -594,40 +594,40 @@ void trimesh::transform(const Matrix4x4 &mat)
 	}
 }
 
-Vector3 trimesh::get_centroid() const
+Vector3 TriMesh::get_centroid() const
 {
 	if(!bounds_valid) {
-		((trimesh*)this)->calc_bounds();
+		((TriMesh*)this)->calc_bounds();
 	}
 	return centroid;
 }
 
-Vector3 trimesh::get_aabb_min() const
+Vector3 TriMesh::get_aabb_min() const
 {
 	if(!bounds_valid) {
-		((trimesh*)this)->calc_bounds();
+		((TriMesh*)this)->calc_bounds();
 	}
 	return aabb_min;
 }
 
-Vector3 trimesh::get_aabb_max() const
+Vector3 TriMesh::get_aabb_max() const
 {
 	if(!bounds_valid) {
-		((trimesh*)this)->calc_bounds();
+		((TriMesh*)this)->calc_bounds();
 	}
 	return aabb_max;
 }
 
-float trimesh::get_bsph_radius() const
+float TriMesh::get_bsph_radius() const
 {
 	if(!bounds_valid) {
-		((trimesh*)this)->calc_bounds();
+		((TriMesh*)this)->calc_bounds();
 	}
 	return bsph_rad;
 }
 
 /* TODO optimize updates, use glBufferSubDataARB instead of glBufferDataARB */
-void trimesh::setup_vertex_arrays() const
+void TriMesh::setup_vertex_arrays() const
 {
 	// do we have vertices? (we better have some...)
 	if(vert) {
@@ -728,7 +728,7 @@ void trimesh::setup_vertex_arrays() const
 
 #ifndef DEBUG_DRAWING
 
-void trimesh::draw() const
+void TriMesh::draw() const
 {
 	// if we've got a display list, just use it...
 	if(dlist) {
@@ -744,7 +744,7 @@ void trimesh::draw() const
 
 	setup_vertex_arrays();
 
-	if(index) {		// indexed triangles?
+	if(index) {		// indexed Triangles?
 		if(caps.vbo) {
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, vbo[EL_INDEX]);
 
@@ -783,7 +783,7 @@ void trimesh::draw() const
 
 #else
 
-void trimesh::draw() const
+void TriMesh::draw() const
 {
 	glBegin(GL_TRIANGLES);
 	if(index) {
@@ -808,7 +808,7 @@ void trimesh::draw() const
 }
 #endif
 
-void trimesh::calc_bounds()
+void TriMesh::calc_bounds()
 {
 	centroid = Vector3(0, 0, 0);
 	aabb_min = Vector3(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -837,7 +837,7 @@ void trimesh::calc_bounds()
 }
 
 
-void trimesh::draw_normals(float sz, const color &col) const
+void TriMesh::draw_normals(float sz, const Color &col) const
 {
 	if(!norm) return;
 
@@ -855,7 +855,7 @@ void trimesh::draw_normals(float sz, const color &col) const
 }
 
 
-void trimesh::draw_tangents(float sz, const color &col) const
+void TriMesh::draw_tangents(float sz, const Color &col) const
 {
 	if(!tang) return;
 
@@ -872,7 +872,7 @@ void trimesh::draw_tangents(float sz, const color &col) const
 	glEnd();
 }
 
-void trimesh::draw_vertices(float sz, const color &col) const
+void TriMesh::draw_vertices(float sz, const Color &col) const
 {
 	glPushAttrib(GL_POINT_BIT);
 
@@ -888,21 +888,21 @@ void trimesh::draw_vertices(float sz, const color &col) const
 	glPopAttrib();
 }
 
-struct triangle {
+struct Triangle {
 	Vector3 v[3];
 	Vector3 n;
 };
 
-static bool ray_triangle(const Ray &ray, triangle *tri, float *pt);
+static bool ray_Triangle(const Ray &ray, Triangle *tri, float *pt);
 
-bool trimesh::intersect(const Ray &ray, float *pt) const
+bool TriMesh::intersect(const Ray &ray, float *pt) const
 {
 	float t0 = FLT_MAX;
 
-	// indexed triangles
+	// indexed Triangles
 	int ntris = index ? nindex / 3 : nvert / 3;
 	for(int i=0; i<ntris; i++) {
-		triangle tri;
+		Triangle tri;
 
 		if(index) {
 			tri.v[0] = vert[index[i * 3]];
@@ -919,7 +919,7 @@ bool trimesh::intersect(const Ray &ray, float *pt) const
 		tri.n = cross_product(v1, v2).normalized();
 
 		float t;
-		if(ray_triangle(ray, &tri, &t) && t < t0) {
+		if(ray_Triangle(ray, &tri, &t) && t < t0) {
 			t0 = t;
 		}
 	}
@@ -931,7 +931,7 @@ bool trimesh::intersect(const Ray &ray, float *pt) const
 	return false;
 }
 
-static bool ray_triangle(const Ray &ray, triangle *tri, float *pt)
+static bool ray_Triangle(const Ray &ray, Triangle *tri, float *pt)
 {
 	float vdotn = dot_product(ray.dir, tri->n);
 	if(fabs(vdotn) < ERROR_MARGIN) {

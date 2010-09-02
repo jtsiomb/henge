@@ -7,7 +7,7 @@
 
 namespace henge {
 
-enum config_value_type {
+enum ConfigValueType {
 	CVAL_INVALID,
 	CVAL_SCALAR,
 	CVAL_VECTOR,
@@ -15,20 +15,20 @@ enum config_value_type {
 	CVAL_BOOL
 };
 
-struct config_value {
-	config_value_type type;
+struct ConfigValue {
+	ConfigValueType type;
 
 	float val;
 	Vector4 vec;
 	std::string str;
 	bool bval;
 
-	config_value();
+	ConfigValue();
 };
 
-class config_file {
+class ConfigFile {
 private:
-	std::map<std::string, config_value> options;
+	std::map<std::string, ConfigValue> options;
 
 public:
 	bool read(const char *fname);

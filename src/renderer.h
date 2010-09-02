@@ -5,10 +5,10 @@
 
 namespace henge {
 
-class renderer;
+class Renderer;
 
-void set_renderer(renderer *rend);
-renderer *get_renderer();
+void set_renderer(Renderer *rend);
+Renderer *get_renderer();
 
 enum {
 	REND_OBJ		= 1 << SCITEM_OBJ,
@@ -24,41 +24,41 @@ enum {
 
 extern unsigned int current_time;
 
-class renderer {
+class Renderer {
 protected:
 	unsigned int rend_mask;
 
 public:
-	renderer();
-	virtual ~renderer();
+	Renderer();
+	virtual ~Renderer();
 
 	void set_render_mask(unsigned int rmask);
 	unsigned int get_render_mask() const;
 
-	virtual void render(const scene *scn, unsigned int msec = 0) const = 0;
+	virtual void render(const Scene *scn, unsigned int msec = 0) const = 0;
 };
 
-class std_renderer : public renderer {
+class StdRenderer : public Renderer {
 public:
-	//virtual ~std_renderer();
-	virtual void render(const scene *scn, unsigned int msec = 0) const;
+	//virtual ~StdRenderer();
+	virtual void render(const Scene *scn, unsigned int msec = 0) const;
 };
 
 // defined in deferred.cc
-class deferred_renderer : public renderer {
+class DeferredRenderer : public Renderer {
 protected:
-	shader *def_obj_sdr;
-	shader *point_light_sdr, *spot_light_sdr;
-	shader *dbg_sdr;
+	Shader *def_obj_sdr;
+	Shader *point_light_sdr, *spot_light_sdr;
+	Shader *dbg_sdr;
 
 	bool init();
 	void shutdown();
 
 public:
-	deferred_renderer();
-	virtual ~deferred_renderer();
+	DeferredRenderer();
+	virtual ~DeferredRenderer();
 
-	virtual void render(const scene *scn, unsigned int msec = 0) const;
+	virtual void render(const Scene *scn, unsigned int msec = 0) const;
 };
 
 }	// namespace henge

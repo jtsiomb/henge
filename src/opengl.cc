@@ -8,18 +8,6 @@
 #include "unicache.h"
 #include "texture.h"
 
-/*
-#if defined(unix) || defined(__unix__)
-#define get_proc(x)		glXGetProcAddressARB((unsigned char*)x)
-#elif defined(WIN32) || defined(__WIN32__)
-#define get_proc(x)		wglGetProcAddress(x)
-#elif defined(__APPLE__)
-#define get_proc(x)		ns_get_proc_address(x)
-#else
-#define get_proc(x)
-#endif
-*/
-
 using namespace henge;
 
 
@@ -27,11 +15,6 @@ static bool get_caps();
 static bool load_extensions();
 static bool have_ext(const char *ext_str, const char *name);
 
-/*
-#if defined(__APPLE__) && defined(__MACH__)
-static void (*ns_get_proc_address(const char *name))();
-#endif
-*/
 
 bool henge::init_opengl()
 {
@@ -41,7 +24,7 @@ bool henge::init_opengl()
 	if(!load_extensions()) {
 		return false;
 	}
-	
+
 	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
 	if(caps.sep_spec) {
@@ -135,14 +118,14 @@ static bool get_caps()
 
 		info("%s: %s\n", ext_caps[i].desc, *ext_caps[i].cap ? "yes" : "no");
 	}
-	
+
 	if(caps.multitex) {
 		glGetIntegerv(GL_MAX_TEXTURE_UNITS, &caps.max_tex_units);
 		info("texture units: %d\n", caps.max_tex_units);
 	} else {
 		caps.max_tex_units = 1;
 	}
-	
+
 	glGetIntegerv(GL_MAX_LIGHTS, &caps.max_lights);
 	info("maximum lights: %d\n", caps.max_lights);
 
@@ -171,84 +154,8 @@ static bool get_caps()
 	return true;
 }
 
-/*
-#define LOAD_FUNC(name, type)	\
-	do { \
-		henge::name = (type)get_proc(#name); \
-		if(!henge::name) { \
-			fprintf(stderr, "failed to load function: " #name); \
-			load_failed = true; \
-		} \
-	} while(0)
-*/
-
 static bool load_extensions()
 {
-	/*
-	bool load_failed = false;
-
-	if(caps.multitex) {
-		LOAD_FUNC(glActiveTextureARB, PFNGLACTIVETEXTUREARBPROC);
-		LOAD_FUNC(glClientActiveTextureARB, PFNGLCLIENTACTIVETEXTUREARBPROC);
-	}
-
-	if(caps.vbo) {
-		LOAD_FUNC(glBindBufferARB, PFNGLBINDBUFFERARBPROC);
-		LOAD_FUNC(glDeleteBuffersARB, PFNGLDELETEBUFFERSARBPROC);
-		LOAD_FUNC(glGenBuffersARB, PFNGLGENBUFFERSARBPROC);
-		LOAD_FUNC(glBufferDataARB, PFNGLBUFFERDATAARBPROC);
-		LOAD_FUNC(glBufferSubDataARB, PFNGLBUFFERSUBDATAARBPROC);
-		LOAD_FUNC(glMapBufferARB, PFNGLMAPBUFFERARBPROC);
-		LOAD_FUNC(glUnmapBufferARB, PFNGLUNMAPBUFFERARBPROC);
-	}
-
-	if(caps.trans_mat) {
-		LOAD_FUNC(glLoadTransposeMatrixfARB, PFNGLLOADTRANSPOSEMATRIXFARBPROC);
-		LOAD_FUNC(glMultTransposeMatrixfARB, PFNGLMULTTRANSPOSEMATRIXFARBPROC);
-	}
-
-	if(caps.glsl) {
-		LOAD_FUNC(glCreateShaderObjectARB, PFNGLCREATESHADEROBJECTARBPROC);
-		LOAD_FUNC(glCreateProgramObjectARB, PFNGLCREATEPROGRAMOBJECTARBPROC);
-		LOAD_FUNC(glDeleteObjectARB, PFNGLDELETEOBJECTARBPROC);
-		LOAD_FUNC(glShaderSourceARB, PFNGLSHADERSOURCEARBPROC);
-		LOAD_FUNC(glCompileShaderARB, PFNGLCOMPILESHADERARBPROC);
-		LOAD_FUNC(glAttachObjectARB, PFNGLATTACHOBJECTARBPROC);
-		LOAD_FUNC(glLinkProgramARB, PFNGLLINKPROGRAMARBPROC);
-		LOAD_FUNC(glUseProgramObjectARB, PFNGLUSEPROGRAMOBJECTARBPROC);
-		LOAD_FUNC(glGetObjectParameterivARB, PFNGLGETOBJECTPARAMETERIVARBPROC);
-		LOAD_FUNC(glGetInfoLogARB, PFNGLGETINFOLOGARBPROC);
-		LOAD_FUNC(glGetUniformLocationARB, PFNGLGETUNIFORMLOCATIONARBPROC);
-		LOAD_FUNC(glUniform1iARB, PFNGLUNIFORM1IARBPROC);
-		LOAD_FUNC(glUniform1fARB, PFNGLUNIFORM1FARBPROC);
-		LOAD_FUNC(glUniform3fARB, PFNGLUNIFORM3FARBPROC);
-		LOAD_FUNC(glUniform4fARB, PFNGLUNIFORM4FARBPROC);
-		LOAD_FUNC(glUniformMatrix4fvARB, PFNGLUNIFORMMATRIX4FVARBPROC);		
-		LOAD_FUNC(glGetActiveUniformARB, PFNGLGETACTIVEUNIFORMARBPROC);
-		LOAD_FUNC(glBindAttribLocationARB, PFNGLBINDATTRIBLOCATIONARBPROC);
-		LOAD_FUNC(glVertexAttrib3fARB, PFNGLVERTEXATTRIB3FARBPROC);
-		LOAD_FUNC(glEnableVertexAttribArrayARB, PFNGLENABLEVERTEXATTRIBARRAYARBPROC);
-		LOAD_FUNC(glVertexAttribPointerARB, PFNGLVERTEXATTRIBPOINTERARBPROC);
-		LOAD_FUNC(glDisableVertexAttribArrayARB, PFNGLDISABLEVERTEXATTRIBARRAYARBPROC);
-	}
-
-	if(caps.fbo) {
-		LOAD_FUNC(glBindRenderbufferEXT, PFNGLBINDRENDERBUFFEREXTPROC);
-		LOAD_FUNC(glDeleteRenderbuffersEXT, PFNGLDELETERENDERBUFFERSEXTPROC);
-		LOAD_FUNC(glGenRenderbuffersEXT, PFNGLGENRENDERBUFFERSEXTPROC);
-		LOAD_FUNC(glRenderbufferStorageEXT, PFNGLRENDERBUFFERSTORAGEEXTPROC);
-		LOAD_FUNC(glBindFramebufferEXT, PFNGLBINDFRAMEBUFFEREXTPROC);
-		LOAD_FUNC(glDeleteFramebuffersEXT, PFNGLDELETEFRAMEBUFFERSEXTPROC);
-		LOAD_FUNC(glGenFramebuffersEXT, PFNGLGENFRAMEBUFFERSEXTPROC);
-		LOAD_FUNC(glCheckFramebufferStatusEXT, PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC);
-		LOAD_FUNC(glFramebufferTexture2DEXT, PFNGLFRAMEBUFFERTEXTURE2DEXTPROC);
-		LOAD_FUNC(glFramebufferRenderbufferEXT, PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC);
-		LOAD_FUNC(glGenerateMipmapEXT, PFNGLGENERATEMIPMAPEXTPROC);
-	}
-
-	return !load_failed;
-	*/
-
 	glewInit();
 	return true;
 }
@@ -261,26 +168,3 @@ static bool have_ext(const char *ext_str, const char *name)
 	}
 	return false;
 }
-
-/*
-#if defined(__APPLE__) && defined(__MACH__)
-#include <mach-o/dyld.h>
-
-static void (*ns_get_proc_address(const char *name))()
-{
-	NSSymbol sym;
-	
-	char *sym_name = (char*)alloca(strlen(name) + 2);
-	sprintf(sym_name, "_%s", name);
-
-	if(!NSIsSymbolNameDefined(sym_name)) {
-		return 0;
-	}
-	if(!(sym = NSLookupAndBindSymbol(sym_name))) {
-		return 0;
-	}
-
-	return (void (*)())NSAddressOfSymbol(sym);
-}
-#endif
-*/

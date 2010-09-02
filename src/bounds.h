@@ -5,34 +5,34 @@
 
 namespace henge {
 
-class bvolume {
+class BVolume {
 public:
-	virtual ~bvolume();
+	virtual ~BVolume();
 
 	virtual bool contains(const Vector3 &pt) const = 0;
 	virtual bool intersect(const Ray &ray) const = 0;
 };
 
-class bsphere : public bvolume {
+class BSphere : public BVolume {
 public:
 	Vector3 center;
 	float radius;
 
-	bsphere();
-	bsphere(const Vector3 &center, float radius);
-	virtual ~bsphere();
+	BSphere();
+	BSphere(const Vector3 &center, float radius);
+	virtual ~BSphere();
 
 	virtual bool contains(const Vector3 &pt) const;
 	virtual bool intersect(const Ray &ray) const;
 };
 
-class aabox : public bvolume {
+class AABox : public BVolume {
 public:
 	Vector3 min, max;
 
-	aabox();
-	aabox(const Vector3 &min, const Vector3 &max);
-	virtual ~aabox();
+	AABox();
+	AABox(const Vector3 &min, const Vector3 &max);
+	virtual ~AABox();
 
 	virtual bool contains(const Vector3 &pt) const;
 	virtual bool intersect(const Ray &ray) const;

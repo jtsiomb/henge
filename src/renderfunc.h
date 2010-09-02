@@ -3,13 +3,13 @@
 
 namespace henge {
 
-class render_func {
+class RenderFunc {
 private:
 	void *closure;
 	void (*func)(unsigned int, void*);
 
 public:
-	render_func(void (*func)(unsigned int, void*) = 0, void *cls = 0);
+	RenderFunc(void (*func)(unsigned int, void*) = 0, void *cls = 0);
 
 	void operator()(unsigned int msec = 0) const;
 };
