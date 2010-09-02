@@ -629,6 +629,12 @@ float TriMesh::get_bsph_radius() const
 /* TODO optimize updates, use glBufferSubDataARB instead of glBufferDataARB */
 void TriMesh::setup_vertex_arrays() const
 {
+#ifdef SINGLE_PRECISION_MATH
+	static const GLenum gltype = GL_FLOAT;
+#else
+	static const GLenum gltype = GL_DOUBLE;
+#endif
+
 	// do we have vertices? (we better have some...)
 	if(vert) {
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -641,9 +647,9 @@ void TriMesh::setup_vertex_arrays() const
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, nvert * sizeof *vert, vert, GL_DYNAMIC_DRAW_ARB);
 				vbo_valid[EL_VERTEX] = true;
 			}
-			glVertexPointer(3, GL_FLOAT, 0, 0);
+			glVertexPointer(3, gltype, 0, 0);
 		} else {
-			glVertexPointer(3, GL_FLOAT, 0, vert);
+			glVertexPointer(3, gltype, 0, vert);
 		}
 	}
 
@@ -659,9 +665,9 @@ void TriMesh::setup_vertex_arrays() const
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, nnorm * sizeof *norm, norm, GL_DYNAMIC_DRAW_ARB);
 				vbo_valid[EL_NORMAL] = true;
 			}
-			glNormalPointer(GL_FLOAT, 0, 0);
+			glNormalPointer(gltype, 0, 0);
 		} else {
-			glNormalPointer(GL_FLOAT, 0, norm);
+			glNormalPointer(gltype, 0, norm);
 		}
 	}
 
@@ -677,9 +683,9 @@ void TriMesh::setup_vertex_arrays() const
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, ntc * sizeof *tc, tc, GL_DYNAMIC_DRAW_ARB);
 				vbo_valid[EL_TEXCOORD] = true;
 			}
-			glTexCoordPointer(2, GL_FLOAT, 0, 0);
+			glTexCoordPointer(2, gltype, 0, 0);
 		} else {
-			glTexCoordPointer(2, GL_FLOAT, 0, tc);
+			glTexCoordPointer(2, gltype, 0, tc);
 		}
 	}
 
@@ -695,9 +701,9 @@ void TriMesh::setup_vertex_arrays() const
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, ncol * sizeof *col, col, GL_DYNAMIC_DRAW_ARB);
 				vbo_valid[EL_COLOR] = true;
 			}
-			glColorPointer(4, GL_FLOAT, 0, 0);
+			glColorPointer(4, gltype, 0, 0);
 		} else {
-			glColorPointer(4, GL_FLOAT, 0, col);
+			glColorPointer(4, gltype, 0, col);
 		}
 	}
 
@@ -713,9 +719,9 @@ void TriMesh::setup_vertex_arrays() const
 				glBufferDataARB(GL_ARRAY_BUFFER_ARB, ntang * sizeof *tang, tang, GL_DYNAMIC_DRAW_ARB);
 				vbo_valid[EL_TANGENT] = true;
 			}
-			glVertexAttribPointerARB(SDR_ATTR_TANGENT, 3, GL_FLOAT, 0, 0, 0);
+			glVertexAttribPointerARB(SDR_ATTR_TANGENT, 3, gltype, 0, 0, 0);
 		} else {
-			glVertexAttribPointerARB(SDR_ATTR_TANGENT, 3, GL_FLOAT, 0, 0, tang);
+			glVertexAttribPointerARB(SDR_ATTR_TANGENT, 3, gltype, 0, 0, tang);
 		}
 	}
 
@@ -893,7 +899,7 @@ struct Triangle {
 	Vector3 n;
 };
 
-static bool ray_Triangle(const Ray &ray, Triangle *tri, float *pt);
+static bool ray_triangle(const Ray &ray, Triangle *tri, float *pt);
 
 bool TriMesh::intersect(const Ray &ray, float *pt) const
 {
@@ -919,7 +925,7 @@ bool TriMesh::intersect(const Ray &ray, float *pt) const
 		tri.n = cross_product(v1, v2).normalized();
 
 		float t;
-		if(ray_Triangle(ray, &tri, &t) && t < t0) {
+		if(ray_triangle(ray, &tri, &t) && t < t0) {
 			t0 = t;
 		}
 	}
@@ -931,7 +937,7 @@ bool TriMesh::intersect(const Ray &ray, float *pt) const
 	return false;
 }
 
-static bool ray_Triangle(const Ray &ray, Triangle *tri, float *pt)
+static bool ray_triangle(const Ray &ray, Triangle *tri, float *pt)
 {
 	float vdotn = dot_product(ray.dir, tri->n);
 	if(fabs(vdotn) < ERROR_MARGIN) {
