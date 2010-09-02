@@ -41,30 +41,52 @@ void henge::store_matrix(Matrix4x4 *mat)
 	glGetIntegerv(GL_MATRIX_MODE, &mmode);
 
 	int mget = GL_MODELVIEW_MATRIX + (mmode - GL_MODELVIEW);
+#ifdef SINGLE_PRECISION_MATH
 	glGetFloatv(mget, (float*)mat);
+#else
+	glGetDoublev(mget, (double*)mat);
+#endif
 
 	mat->transpose();
 }
 
 void henge::load_matrix(const Matrix4x4 &mat)
 {
+#ifdef SINGLE_PRECISION_MATH
 	if(caps.trans_mat) {
 		glLoadTransposeMatrixfARB((float*)&mat);
 	} else {
 		Matrix4x4 trans = mat.transposed();
 		glLoadMatrixf((float*)&trans);
 	}
+#else
+	if(caps.trans_mat) {
+		glLoadTransposeMatrixdARB((double*)&mat);
+	} else {
+		Matrix4x4 trans = mat.transposed();
+		glLoadMatrixd((double*)&trans);
+	}
+#endif
 }
 
 
 void henge::mult_matrix(const Matrix4x4 &mat)
 {
+#ifdef SINGLE_PRECISION_MATH
 	if(caps.trans_mat) {
 		glMultTransposeMatrixfARB((float*)&mat);
 	} else {
 		Matrix4x4 trans = mat.transposed();
 		glMultMatrixf((float*)&trans);
 	}
+#else
+	if(caps.trans_mat) {
+		glMultTransposeMatrixdARB((double*)&mat);
+	} else {
+		Matrix4x4 trans = mat.transposed();
+		glMultMatrixd((double*)&trans);
+	}
+#endif
 }
 
 static const char *error_str[] = {

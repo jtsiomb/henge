@@ -85,6 +85,16 @@ bool Light::is_enabled() const
 	return enabled;
 }
 
+#ifdef SINGLE_PRECISION_MATH
+#define gl_lightv(lt, attr, v)	glLightfv(lt, attr, fvec)
+#else
+#define gl_lightv(lt, attr, v)	\
+	do { \
+		float fvec[] = {v.x, v.y, v.z, v.w}; \
+		glLightfv(lt, attr, fvec); \
+	} while(0)
+#endif
+
 bool Light::bind(int idx, unsigned int msec) const
 {
 	if(!enabled) return false;
@@ -98,10 +108,10 @@ bool Light::bind(int idx, unsigned int msec) const
 	Vector4 diff = diffuse;
 	Vector4 spec = specular;
 
-	glLightfv(lt, GL_POSITION, (float*)&pos);
-	glLightfv(lt, GL_AMBIENT, (float*)&amb);
-	glLightfv(lt, GL_DIFFUSE, (float*)&diff);
-	glLightfv(lt, GL_SPECULAR, (float*)&spec);
+	gl_lightv(lt, GL_POSITION, pos);
+	gl_lightv(lt, GL_AMBIENT, amb);
+	gl_lightv(lt, GL_DIFFUSE, diff);
+	gl_lightv(lt, GL_SPECULAR, spec);
 	glLightf(lt, GL_CONSTANT_ATTENUATION, att[0]);
 	glLightf(lt, GL_LINEAR_ATTENUATION, att[1]);
 	glLightf(lt, GL_QUADRATIC_ATTENUATION, att[2]);
