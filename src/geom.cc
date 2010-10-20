@@ -92,32 +92,32 @@ bool Sphere::raytest(const Ray &ray, Vector3 *pt) const
 
 // --- Plane ---
 
-Plane::Plane(const Vector3 &pos, const Vector3 &norm)
+henge::Plane::Plane(const Vector3 &pos, const Vector3 &norm)
 {
 	this->pos = pos;
 	this->norm = norm;
 }
 
-Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
+henge::Plane::Plane(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 {
 	set_points(p1, p2, p3);
 }
 
-Plane::~Plane() {}
+henge::Plane::~Plane() {}
 
 
-void Plane::set_normal(const Vector3 &norm)
+void henge::Plane::set_normal(const Vector3 &norm)
 {
 	this->norm = norm;
 }
 
-Vector3 Plane::get_normal() const
+Vector3 henge::Plane::get_normal() const
 {
 	return norm;
 }
 
 // define the plane by 3 points
-void Plane::set_points(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
+void henge::Plane::set_points(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 {
 	pos = p1;
 
@@ -128,7 +128,7 @@ void Plane::set_points(const Vector3 &p1, const Vector3 &p2, const Vector3 &p3)
 }
 
 
-bool Plane::raytest(const Ray &ray, Vector3 *pt) const
+bool henge::Plane::raytest(const Ray &ray, Vector3 *pt) const
 {
 	if(fabs(dot_product(norm, ray.dir)) < ERROR_MARGIN) {
 		return false;
