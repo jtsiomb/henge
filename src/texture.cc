@@ -419,7 +419,7 @@ void henge::set_texture(const Texture *tex, int unit)
 	}
 }
 
-int round_pow2(int x)
+int henge::round_pow2(int x)
 {
 	x--;
 	x = (x >> 1) | x;
