@@ -132,6 +132,10 @@ static struct {
 static bool get_caps()
 {
 	const char *ext_str = (char*)glGetString(GL_EXTENSIONS);
+	if(!ext_str) {
+		error("failed to get the extensions string\n");
+		return false;
+	}
 
 	for(int i=0; ext_caps[i].ext; i++) {
 		if(have_ext(ext_str, ext_caps[i].ext)) {
