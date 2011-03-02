@@ -6,27 +6,29 @@ lib_a = libhenge2.a
 somajor = 2
 sominor = 0
 
+inc = -Isrc
+warn = -Wall
+
 ifeq ($(shell uname -s), Darwin)
 	lib_so = libhenge2.dylib
 	shared = -dynamiclib
-	gl_libs = -framework OpenGL
+	gl_libs = -framework OpenGL -lGLEW
+	inc += -I/usr/local/include -I/opt/local/include -I/sw/local/include
+	libpath = -L/usr/local/lib -L/opt/local/lib -L/sw/local/lib
 else
 	linkname = libhenge2.so
 	soname = $(linkname).$(somajor)
 	lib_so = $(soname).$(sominor)
 	shared = -shared -Wl,-soname,$(soname)
-	gl_libs = -lGL -lGLU
+	gl_libs = -lGL -lGLU -lGLEW
 	pic = -fPIC
 endif
 
-inc = -Isrc
-warn = -Wall
-
 CC = gcc
 CXX = g++
-CFLAGS = -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) `pkg-config --cflags vmath imago`
-CXXFLAGS = -ansi -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) `pkg-config --cflags vmath imago`
-LDFLAGS = $(gl_libs) -lm `pkg-config --libs vmath imago`
+CFLAGS = -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) `pkg-config --cflags vmath`
+CXXFLAGS = -ansi -pedantic $(pic) $(warn) $(dbg) $(opt) $(inc) `pkg-config --cflags vmath`
+LDFLAGS = $(libpath) $(gl_libs) -lm `pkg-config --libs vmath` -limago -l3ds
 
 
 .PHONY: all
@@ -69,7 +71,7 @@ install: $(lib_a) $(lib_so)
 	test -d $(PREFIX)/lib/pkgconfig || mkdir -p $(PREFIX)/lib/pkgconfig
 	cp $(lib_a) $(PREFIX)/lib/$(lib_a)
 	cp $(lib_so) $(PREFIX)/lib/$(lib_so)
-	rm -f $(PREFIX)/lib/$(linkname)
+	test -z "$(linkname)" || rm -f $(PREFIX)/lib/$(linkname)
 	cd $(PREFIX)/lib && ( test -z "$(linkname)" || ln -s $(lib_so) $(linkname) )
 	cd src && cp *.h *.inl $(PREFIX)/include/henge2/
 	cp henge2.pc $(PREFIX)/lib/pkgconfig/henge2.pc
