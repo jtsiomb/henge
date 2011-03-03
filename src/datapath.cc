@@ -63,6 +63,12 @@ bool henge::find_file(const char *fname, char *pathname, int pnsz)
 		fname++;
 	}
 
+	if(access(fname, F_OK) == 0) {
+		strncpy(pathname, fname, pnsz);
+		pathname[pnsz - 1] = 0;
+		return true;
+	}
+
 	if(*fname == '/') {
 		strncpy(pathname, fname, pnsz);
 		return access(fname, F_OK) == 0;
@@ -80,6 +86,7 @@ bool henge::find_file(const char *fname, char *pathname, int pnsz)
 			return true;
 		}
 	}
+
 	info("not found\n");
 	return false;
 }

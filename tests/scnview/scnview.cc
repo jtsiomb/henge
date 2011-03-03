@@ -12,7 +12,7 @@ using namespace henge;
 
 void disp();
 void env_render(void);
-void object_render(const robject *obj, unsigned int msec, void *cls);
+void object_render(const RObject *obj, unsigned int msec, void *cls);
 void reshape(int x, int y);
 void keyb(unsigned char key, int x, int y);
 void keyb_up(unsigned char key, int x, int y);
