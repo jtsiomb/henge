@@ -16,9 +16,9 @@ void keyb_up(unsigned char key, int x, int y);
 void mouse(int bn, int state, int x, int y);
 void motion(int x, int y);
 
-material mat;
-shader *sdr;
-texture *dif_tex, *norm_tex;
+Material mat;
+Shader *sdr;
+Texture *dif_tex, *norm_tex;
 
 float cam_theta = 0, cam_phi = 0, cam_dolly = 5;
 float cam_y = 0;
@@ -57,8 +57,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	mat.set_color(color(1.0, 0.9, 0.8, 1), MATTR_AMB_AND_DIF);
-	mat.set_color(color(1, 1, 1, 1), MATTR_SPECULAR);
+	mat.set_color(Color(1.0, 0.9, 0.8, 1), MATTR_AMB_AND_DIF);
+	mat.set_color(Color(1, 1, 1, 1), MATTR_SPECULAR);
 	mat.set(60.0, MATTR_SHININESS);
 	mat.set_shader(sdr);
 	mat.set_texture(dif_tex, 0);
