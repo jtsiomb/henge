@@ -53,14 +53,6 @@ bool Scene::load(const char *fname)
 		return false;
 	}
 
-	char *last_slash = strrchr(path, '/');
-	if(last_slash) {
-		*last_slash = 0;
-	}
-	if(!strstr(get_path(), path)) {
-		add_path(path);
-	}
-
 	if(load_ms3d(fp)) {
 		fclose(fp);
 		return true;
