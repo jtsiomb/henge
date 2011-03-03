@@ -9,8 +9,8 @@ else
 endif
 
 CXX = g++
-CXXFLAGS = -ansi -pedantic -Wall $(dbg) $(opt) `pkg-config --cflags henge`
-LDFLAGS = `pkg-config --libs henge` $(gl_libs)
+CXXFLAGS = -ansi -pedantic -Wall $(dbg) $(opt) `pkg-config --cflags henge2`
+LDFLAGS = `pkg-config --libs henge2` $(gl_libs)
 
 $(bin): $(obj)
 	$(CXX) -o $@ $(obj) $(LDFLAGS)
