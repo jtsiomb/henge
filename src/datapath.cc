@@ -11,6 +11,10 @@
 #include <alloca.h>
 #endif
 
+#if defined(__unix__) || defined(__UNIX__)
+#include <unistd.h>
+#endif
+
 using namespace henge;
 using namespace std;
 

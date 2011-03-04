@@ -55,62 +55,61 @@ public:
 	Scene();
 	virtual ~Scene();
 
-	bool load(const char *fname);
+	virtual bool load(const char *fname);
 
-	void clear();
-	void clear_objects();
-	void clear_lights();
-	void clear_cameras();
-	void clear_materials();
-	void clear_particles();
-	void clear_renderfuncs();
+	virtual void clear();
+	virtual void clear_objects();
+	virtual void clear_lights();
+	virtual void clear_cameras();
+	virtual void clear_particles();
+	virtual void clear_renderfuncs();
 
-	void set_auto_destruct(const void *item, bool auto_del);
-	bool get_auto_destruct(const void *item) const;
+	virtual void set_auto_destruct(const void *item, bool auto_del);
+	virtual bool get_auto_destruct(const void *item) const;
 
-	bool add_object(RObject *obj);
-	bool add_light(Light *lt);
-	bool add_camera(Camera *cam);
-	bool add_particles(ParticleSystem *psys);
-	bool add_render_func(const RenderFunc &rfunc);
+	virtual bool add_object(RObject *obj);
+	virtual bool add_light(Light *lt);
+	virtual bool add_camera(Camera *cam);
+	virtual bool add_particles(ParticleSystem *psys);
+	virtual bool add_render_func(const RenderFunc &rfunc);
 
-	RObject *get_object(const char *name) const;
-	RObject *get_object(int idx) const;
+	virtual RObject *get_object(const char *name) const;
+	virtual RObject *get_object(int idx) const;
 
-	Light *get_light(const char *name) const;
-	Light *get_light(int idx) const;
+	virtual Light *get_light(const char *name) const;
+	virtual Light *get_light(int idx) const;
 
-	Camera *get_camera(const char *name) const;
-	Camera *get_camera(int idx) const;
+	virtual Camera *get_camera(const char *name) const;
+	virtual Camera *get_camera(int idx) const;
 
-	bool remove_object(const char *name);
+	virtual bool remove_object(const char *name);
 
-	RObject **get_objects();
-	RObject * const *get_objects() const;
-	Light **get_lights();
-	Light * const *get_lights() const;
-	Camera **get_cameras();
-	Camera * const *get_cameras() const;
-	ParticleSystem **get_particles();
-	ParticleSystem * const *get_particles() const;
-	RenderFunc *get_render_funcs();
-	const RenderFunc *get_render_funcs() const;
+	virtual RObject **get_objects();
+	virtual RObject * const *get_objects() const;
+	virtual Light **get_lights();
+	virtual Light * const *get_lights() const;
+	virtual Camera **get_cameras();
+	virtual Camera * const *get_cameras() const;
+	virtual ParticleSystem **get_particles();
+	virtual ParticleSystem * const *get_particles() const;
+	virtual RenderFunc *get_render_funcs();
+	virtual const RenderFunc *get_render_funcs() const;
 
-	int object_count() const;
-	int light_count() const;
-	int camera_count() const;
-	int particle_count() const;
-	int render_func_count() const;
+	virtual int object_count() const;
+	virtual int light_count() const;
+	virtual int camera_count() const;
+	virtual int particle_count() const;
+	virtual int render_func_count() const;
 
-	bool merge(const Scene &scn);
+	virtual bool merge(const Scene &scn);
 
-	const AABox *get_bbox() const;
-	const BSphere *get_bsphere() const;
+	virtual const AABox *get_bbox() const;
+	virtual const BSphere *get_bsphere() const;
 
-	void setup_lights(unsigned int msec = 0) const;
-	void setup_camera(unsigned int msec = 0) const;
+	virtual void setup_lights(unsigned int msec = 0) const;
+	virtual void setup_camera(unsigned int msec = 0) const;
 
-	void render(unsigned int msec = 0) const;
+	virtual void render(unsigned int msec = 0) const;
 };
 
 }	// namespace henge

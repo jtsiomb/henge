@@ -86,7 +86,7 @@ bool Light::is_enabled() const
 }
 
 #ifdef SINGLE_PRECISION_MATH
-#define gl_lightv(lt, attr, v)	glLightfv(lt, attr, fvec)
+#define gl_lightv(lt, attr, v)	glLightfv(lt, attr, (float*)&v.x)
 #else
 #define gl_lightv(lt, attr, v)	\
 	do { \

@@ -14,6 +14,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#ifndef _MSC_VER
+#include <alloca.h>
+#else
+#include <malloc.h>
+#endif
+
 // tests if an OpenGL pixel format is floating point
 #define IS_FLOAT_FMT(fmt)	\
 	((fmt) == GL_RGBA32F_ARB || (fmt) == GL_RGBA16F_ARB || \
