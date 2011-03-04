@@ -5,6 +5,12 @@
 #include "errlog.h"
 #include "datapath.h"
 
+#ifndef _MSC_VER
+#include <alloca.h>
+#else
+#include <malloc.h>
+#endif
+
 using namespace std;
 using namespace henge;
 

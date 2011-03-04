@@ -7,6 +7,12 @@
 #include "imgutil.h"
 #include "errlog.h"
 
+#ifndef _MSC_VER
+#include <alloca.h>
+#else
+#include <malloc.h>
+#endif
+
 using namespace henge;
 
 static int pixel_size(PixmapFormat fmt);

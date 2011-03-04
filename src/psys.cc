@@ -249,6 +249,10 @@ void ParticleSystem::set_particle_type(ParticleType ptype)
 	this->ptype = ptype;
 }
 
+#ifdef __sgi__
+#define round(x)	floor((x) + 0.5)
+#endif
+
 void ParticleSystem::update(const Vector3 &ext_force)
 {
 	if(!ready) {// || (!active && num_particles == 0)) {
