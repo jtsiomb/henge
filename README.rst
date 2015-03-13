@@ -40,6 +40,7 @@ COPYING.LESSER_ for details.
 Installation
 ------------
 Henge depends on the following libraries:
+
  * OpenGL: http://www.opengl.org
  * GLEW: http://glew.sourceforge.net
  * libimago2: http://github.com/jtsiomb/libimago
