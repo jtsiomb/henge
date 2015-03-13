@@ -39,6 +39,17 @@ COPYING.LESSER_ for details.
 
 Installation
 ------------
+Henge depends on the following libraries:
+ * OpenGL: http://www.opengl.org
+ * GLEW: http://glew.sourceforge.net
+ * libimago2: http://github.com/jtsiomb/libimago
+
+   - libpng: http://www.libpng.org/pub/png/libpng.html
+   - zlib: http://www.zlib.net/
+   - jpeglib: http://www.ijg.org/
+
+ * libvmath: http://github.com/jtsiomb/libvmath
+
 To compile and install (default prefix is /usr/local) just go into the henge
 directory and type::
 
