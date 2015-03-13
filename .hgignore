@@ -1,0 +1,10 @@
+\.o$
+\.d$
+\.swp$
+\.pc$
+\.a$
+\.so$
+\.so\.
+\.orig$
+Makefile$
+\.png$

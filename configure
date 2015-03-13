@@ -3,7 +3,7 @@
 opt=yes
 dbg=yes
 prefix=/usr/local
-version=`head -1 README | sed 's/^.*- //'`
+version=`head -1 VERSION`
 
 echo "configuring henge $version ..."
 
