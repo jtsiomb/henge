@@ -1,5 +1,6 @@
 #include <map>
 #include <string>
+#include <stack>
 #include <string.h>
 #include <stdarg.h>
 #include <errno.h>

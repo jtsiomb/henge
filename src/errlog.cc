@@ -7,6 +7,10 @@
 #include <errno.h>
 #include "errlog.h"
 
+#if defined(unix) || defined(__unix__)
+#include <unistd.h>
+#endif
+
 using namespace std;
 using namespace henge;
 
